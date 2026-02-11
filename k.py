@@ -27,20 +27,12 @@ st.set_page_config(page_title="AutoML Studio", layout="wide")
 # ===================== HERO SECTION =====================
 st.markdown("""
 <div style='text-align: center; padding-top: 40px; padding-bottom: 20px;'>
-
-<h1 style='font-size: 50px; font-weight: 700;'>
-🚀 AutoML Studio
-</h1>
-
-<h3 style='color: #9CA3AF; font-weight: 400;'>
-An End-to-End Machine Learning Platform
-</h3>
-
+<h1 style='font-size: 50px; font-weight: 700;'>🚀 AutoML Studio</h1>
+<h3 style='color: #9CA3AF; font-weight: 400;'>An End-to-End Machine Learning Platform</h3>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
-
 st.info("📂 Upload your CSV dataset from the sidebar to begin.")
 
 # ===================== SIDEBAR =====================
@@ -59,22 +51,18 @@ if file is not None:
         "⚙️ Preprocessing",
         ["Data Preview", "Missing Value Count", "Fill Missing Values",
          "Duplicate Rows", "Encoding", "Scaling", "Final Dataset"],
+        key="preprocess_menu"
     )
 
-    if preprocess_menu == "Data Preview":
-        st.dataframe(df)
-
-    elif preprocess_menu == "Missing Value Count":
-        st.write(df.isnull().sum())
-
-    elif preprocess_menu == "Fill Missing Values":
-        col = st.selectbox("Column", df.columns)
+    if preprocess_menu == "Fill Missing Values":
+        col = st.selectbox("Column", df.columns, key="fill_col")
         method = st.selectbox(
             "Method",
-            ["Mean", "Median", "Mode", "Forward Fill", "Backward Fill"]
+            ["Mean", "Median", "Mode", "Forward Fill", "Backward Fill"],
+            key="fill_method"
         )
 
-        if st.button("Apply"):
+        if st.button("Apply", key="fill_apply"):
             if method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
                 df[col].fillna(df[col].mean(), inplace=True)
             elif method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
@@ -89,9 +77,15 @@ if file is not None:
             st.session_state.df = df
             st.success("✅ Missing values handled")
 
+    elif preprocess_menu == "Data Preview":
+        st.dataframe(df)
+
+    elif preprocess_menu == "Missing Value Count":
+        st.write(df.isnull().sum())
+
     elif preprocess_menu == "Duplicate Rows":
         st.write("Duplicate rows:", df.duplicated().sum())
-        if st.button("Remove Duplicates"):
+        if st.button("Remove Duplicates", key="remove_duplicates"):
             df.drop_duplicates(inplace=True)
             st.session_state.df = df
             st.success("✅ Duplicates removed")
@@ -116,16 +110,17 @@ if file is not None:
     st.sidebar.markdown("---")
     feature_menu = st.sidebar.selectbox(
         "🎯 Feature Selection",
-        ["None", "SelectKBest"]
+        ["None", "SelectKBest"],
+        key="feature_menu"
     )
 
     if feature_menu == "SelectKBest":
-        target = st.selectbox("Target Column", df.columns)
-        task = st.radio("Task Type", ["Classification", "Regression"])
+        target = st.selectbox("Target Column", df.columns, key="fs_target")
+        task = st.radio("Task Type", ["Classification", "Regression"], key="fs_task")
         k = st.slider("Top K Features", 1, len(df.columns) - 1,
-                      min(5, len(df.columns) - 1))
+                      min(5, len(df.columns) - 1), key="fs_k")
 
-        if st.button("Run Feature Selection"):
+        if st.button("Run Feature Selection", key="fs_run"):
             X = df.drop(columns=[target]).select_dtypes(include="number")
             y = df[target]
 
@@ -149,7 +144,8 @@ if file is not None:
     st.sidebar.markdown("---")
     model_menu = st.sidebar.selectbox(
         "🤖 Model",
-        ["None", "AutoModel"]
+        ["None", "AutoModel"],
+        key="model_menu"
     )
 
     if model_menu == "AutoModel":
@@ -160,8 +156,8 @@ if file is not None:
             st.subheader("📊 AutoModel – Compare All Models")
 
             df_sel = st.session_state.df_selected
-            target = st.selectbox("Target Column", df_sel.columns)
-            task = st.radio("Task Type", ["Classification", "Regression"])
+            target = st.selectbox("Target Column", df_sel.columns, key="auto_target")
+            task = st.radio("Task Type", ["Classification", "Regression"], key="auto_task")
 
             X = df_sel.drop(columns=[target])
             y = df_sel[target]
@@ -222,7 +218,6 @@ if file is not None:
 
             st.success(f"🏆 Best Model Selected: {best_model_name}")
 
-            # ===================== PREDICTION =====================
             st.markdown("---")
             st.subheader("🔮 Predict Using User Input")
 
@@ -230,12 +225,13 @@ if file is not None:
             for col in X.columns:
                 user_input[col] = st.number_input(
                     f"Enter {col}",
-                    value=float(X[col].mean())
+                    value=float(X[col].mean()),
+                    key=f"user_{col}"
                 )
 
             input_df = pd.DataFrame([user_input])
 
-            if st.button("Predict"):
+            if st.button("Predict", key="predict_button"):
                 prediction = best_model.predict(input_df)
 
                 if task == "Classification":
