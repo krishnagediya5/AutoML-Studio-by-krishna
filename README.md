@@ -26,12 +26,6 @@ Pandas
 NumPy
 Scikit-learn
 
-🚀 Run Locally
-git clone https://github.com/your-username/AutoML-Studio.git
-cd AutoML-Studio
-pip install -r requirements.txt
-streamlit run app.py
-
 👨‍💻 Author
 
 Krishna gediya
