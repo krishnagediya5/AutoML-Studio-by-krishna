@@ -21,10 +21,10 @@ from sklearn.naive_bayes import GaussianNB
 
 from sklearn.metrics import accuracy_score, mean_squared_error
 
-# ===================== PAGE CONFIG =====================
+
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ===================== HERO SECTION =====================
+
 st.markdown("""
 <div style='text-align: center; padding-top: 40px; padding-bottom: 20px;'>
 <h1 style='font-size: 50px; font-weight: 700;'>🚀 AutoML Studio</h1>
@@ -35,7 +35,7 @@ st.markdown("""
 st.markdown("---")
 st.info("📂 Upload your CSV dataset from the sidebar to begin.")
 
-# ===================== SIDEBAR =====================
+
 st.sidebar.header("📂 Upload Dataset")
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"], key="file_upload")
 
@@ -46,7 +46,7 @@ if file is not None:
     df = st.session_state.df
     st.success("✅ Dataset Loaded Successfully")
 
-    # ===================== PREPROCESSING =====================
+   
     preprocess_menu = st.sidebar.selectbox(
         "⚙️ Preprocessing",
         ["Data Preview", "Missing Value Count", "Fill Missing Values",
@@ -106,7 +106,7 @@ if file is not None:
     elif preprocess_menu == "Final Dataset":
         st.dataframe(df)
 
-    # ===================== FEATURE SELECTION =====================
+    
     st.sidebar.markdown("---")
     feature_menu = st.sidebar.selectbox(
         "🎯 Feature Selection",
@@ -140,7 +140,7 @@ if file is not None:
             st.success("✅ Feature selection completed")
             st.dataframe(st.session_state.df_selected)
 
-    # ===================== MODELING =====================
+    
     st.sidebar.markdown("---")
     model_menu = st.sidebar.selectbox(
         "🤖 Model",
