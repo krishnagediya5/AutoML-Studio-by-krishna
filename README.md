@@ -1,31 +1,41 @@
-🚀 AutoML Studio
-An End-to-End Machine Learning Platform
+# 🚀 AutoML Studio  
+### 🔥 An End-to-End Machine Learning Platform  
 
-AutoML Studio is a complete Machine Learning pipeline dashboard built using Streamlit and Scikit-learn.
+AutoML Studio is a complete Machine Learning pipeline dashboard built using **Streamlit** and **Scikit-learn**.  
 It allows users to upload datasets, preprocess data, perform feature selection, compare multiple ML models, and generate predictions — all in one interactive interface.
 
-✨ Features
+---
 
-📂 Upload CSV datasets
-📊 Instant dataset preview
-🧹 Handle missing values
-🔁 Remove duplicate rows
-🔤 Encode categorical variables
-⚖️ Apply feature scaling
-🎯 Feature selection using SelectKBest
-🤖 Automatic comparison of multiple ML models
-🏆 Best model selection
-🔮 Custom user input prediction
-📈 Supports Classification & Regression
+## ✨ Features
 
-🛠️ Tech Stack
+- 📂 Upload CSV datasets  
+- 📊 Instant dataset preview  
+- 🧹 Handle missing values  
+- 🔁 Remove duplicate rows  
+- 🔤 Encode categorical variables  
+- ⚖️ Apply feature scaling  
+- 🎯 Feature selection using SelectKBest  
+- 🤖 Automatic comparison of multiple ML models  
+- 🏆 Best model selection  
+- 🔮 Custom user input prediction  
+- 📈 Supports Classification & Regression  
 
-Python
-Streamlit
-Pandas
-NumPy
-Scikit-learn
+---
 
-👨‍💻 Author
+## 🛠 Tech Stack
 
-Krishna gediya
+🐍 Python  
+⚡ Streamlit  
+📊 Pandas  
+🔢 NumPy  
+🤖 Scikit-learn  
+
+---
+
+## 👨‍💻 Author
+
+👤 Krishna Gediya  
+
+---
+
+⭐ If you found this project useful, consider giving it a star!
