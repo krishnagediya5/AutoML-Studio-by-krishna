@@ -38,4 +38,3 @@ It allows users to upload datasets, preprocess data, perform feature selection, 
 
 ---
 
-⭐ If you found this project useful, consider giving it a star!
