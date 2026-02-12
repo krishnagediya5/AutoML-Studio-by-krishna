@@ -55,7 +55,7 @@ if file is not None:
     )
 
     if preprocess_menu == "Fill Missing Values":
-        col = st.selectbox("Column", df.columns, key="fill_col")
+        col = st.multiselect("Column", df.columns, key="fill_col")
         method = st.selectbox(
             "Method",
             ["Mean", "Median", "Mode", "Forward Fill", "Backward Fill"],
