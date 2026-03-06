@@ -9,20 +9,13 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, cross_val_score
 
-# Classification
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-
-# Regression
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.svm import SVC, SVR
+from sklearn.naive_bayes import GaussianNB
 
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
@@ -34,6 +27,14 @@ st.set_page_config(page_title="AutoML Pro", layout="wide")
 
 st.title("🚀 AutoML Pro Studio")
 
+
+# ---------------- CACHE DATA ----------------
+
+@st.cache_data
+def load_data(file):
+    return pd.read_csv(file)
+
+
 # ---------------- Upload Dataset ----------------
 
 st.sidebar.header("Upload Dataset")
@@ -43,7 +44,7 @@ file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 if file:
 
     if "df" not in st.session_state:
-        st.session_state.df = pd.read_csv(file)
+        st.session_state.df = load_data(file)
 
     df = st.session_state.df
 
@@ -108,7 +109,6 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-
         st.success("Missing Values Handled")
 
 # ---------------- Encoding ----------------
@@ -120,11 +120,9 @@ if file:
     if st.button("Apply Encoding"):
 
         for col in encode_cols:
-
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
         st.session_state.df = df
-
         st.success("Encoding Applied")
 
 # ---------------- Scaling ----------------
@@ -178,214 +176,129 @@ if file:
 
     st.write("Selected Features:",list(selected_features))
 
-# ---------------- Train Test Split ----------------
+# ---------------- Train Button ----------------
 
-    X_train,X_test,y_train,y_test = train_test_split(
-        X,y,test_size=0.2,random_state=42
-    )
+    if st.button("🚀 Train Models"):
 
-# ---------------- Models ----------------
+        X_train,X_test,y_train,y_test = train_test_split(
+            X,y,test_size=0.2,random_state=42
+        )
 
-    st.subheader("Model Leaderboard")
+        st.subheader("Model Leaderboard")
 
-    results = []
+        results = []
 
-    best_score = -999
-    best_model = None
-    best_model_name = None
+        progress = st.progress(0)
 
 # ---------------- Classification ----------------
 
-    if task=="Classification":
+        if task=="Classification":
 
-        models = {
+            models = {
 
-            "Logistic Regression":LogisticRegression(max_iter=1000),
-            "Random Forest":RandomForestClassifier(),
-            "Extra Trees":ExtraTreesClassifier(),
-            "Gradient Boosting":GradientBoostingClassifier(),
-            "Decision Tree":DecisionTreeClassifier(),
-            "KNN":KNeighborsClassifier(),
-            "SVM":SVC(probability=True),
-            "Naive Bayes":GaussianNB()
+                "Logistic Regression":LogisticRegression(max_iter=1000),
+                "Random Forest":RandomForestClassifier(),
+                "Extra Trees":ExtraTreesClassifier(),
+                "Gradient Boosting":GradientBoostingClassifier(),
+                "Decision Tree":DecisionTreeClassifier(),
+                "KNN":KNeighborsClassifier(),
+                "SVM":SVC(probability=True),
+                "Naive Bayes":GaussianNB()
 
-        }
+            }
 
-        for name,model in models.items():
+            best_score = 0
 
-            model.fit(X_train,y_train)
+            for i,(name,model) in enumerate(models.items()):
 
-            preds = model.predict(X_test)
+                model.fit(X_train,y_train)
 
-            acc = accuracy_score(y_test,preds)
+                preds = model.predict(X_test)
 
-            cv = cross_val_score(model,X,y,cv=5).mean()
+                acc = accuracy_score(y_test,preds)
 
-            results.append([name,acc,cv])
+                cv = cross_val_score(model,X,y,cv=5).mean()
 
-            if acc > best_score:
-                best_score = acc
-                best_model = model
-                best_model_name = name
+                results.append([name,acc,cv])
 
-        res = pd.DataFrame(results,columns=["Model","Accuracy","CV Score"])
+                if acc > best_score:
+                    best_score = acc
+                    best_model = model
+                    best_model_name = name
 
-        st.dataframe(res)
+                progress.progress((i+1)/len(models))
 
-        fig = px.bar(res,x="Model",y="Accuracy",title="Model Comparison")
+            res = pd.DataFrame(results,columns=["Model","Accuracy","CV Score"])
 
-        st.plotly_chart(fig)
+            st.dataframe(res)
 
-# ---------------- Regression ----------------
-
-    else:
-
-        models = {
-
-            "Linear Regression":LinearRegression(),
-            "Ridge":Ridge(),
-            "Lasso":Lasso(),
-            "Random Forest":RandomForestRegressor(),
-            "Extra Trees":ExtraTreesRegressor(),
-            "Gradient Boosting":GradientBoostingRegressor(),
-            "Decision Tree":DecisionTreeRegressor(),
-            "KNN":KNeighborsRegressor(),
-            "SVR":SVR()
-
-        }
-
-        for name,model in models.items():
-
-            model.fit(X_train,y_train)
-
-            preds = model.predict(X_test)
-
-            rmse = np.sqrt(mean_squared_error(y_test,preds))
-
-            cv = cross_val_score(model,X,y,cv=5,
-                                 scoring="neg_mean_squared_error").mean()
-
-            results.append([name,rmse,cv])
-
-            if best_model is None or rmse < best_score:
-                best_score = rmse
-                best_model = model
-                best_model_name = name
-
-        res = pd.DataFrame(results,columns=["Model","RMSE","CV Score"])
-
-        st.dataframe(res)
-
-        fig = px.bar(res,x="Model",y="RMSE",title="Model Comparison")
-
-        st.plotly_chart(fig)
-
-# ---------------- Best Model ----------------
-
-    st.subheader("🥇 Best Model")
-
-    st.success(f"Best Model Selected: {best_model_name}")
-
-    preds = best_model.predict(X_test)
-
-# ---------------- Evaluation ----------------
-
-    st.subheader("Model Evaluation")
-
-    if task=="Classification":
-
-        st.write("Accuracy:",accuracy_score(y_test,preds))
-        st.write("Precision:",precision_score(y_test,preds,average="weighted"))
-        st.write("Recall:",recall_score(y_test,preds,average="weighted"))
-        st.write("F1 Score:",f1_score(y_test,preds,average="weighted"))
-
-        cm = confusion_matrix(y_test,preds)
-
-        fig = px.imshow(cm,text_auto=True)
-
-        st.plotly_chart(fig)
-
-# ROC Curve
-
-        if hasattr(best_model,"predict_proba"):
-
-            probs = best_model.predict_proba(X_test)[:,1]
-
-            fpr,tpr,_ = roc_curve(y_test,probs)
-
-            roc_auc = auc(fpr,tpr)
-
-            fig = go.Figure()
-
-            fig.add_trace(go.Scatter(x=fpr,y=tpr,name="ROC Curve"))
-
-            fig.update_layout(
-                title=f"ROC Curve (AUC={roc_auc:.2f})",
-                xaxis_title="False Positive Rate",
-                yaxis_title="True Positive Rate"
-            )
+            fig = px.bar(res,x="Model",y="Accuracy")
 
             st.plotly_chart(fig)
 
-    else:
+# ---------------- Regression ----------------
 
-        st.write("RMSE:",np.sqrt(mean_squared_error(y_test,preds)))
-        st.write("MAE:",mean_absolute_error(y_test,preds))
-        st.write("R2 Score:",r2_score(y_test,preds))
+        else:
 
-# ---------------- Feature Importance ----------------
+            models = {
 
-    st.subheader("Feature Importance")
+                "Linear Regression":LinearRegression(),
+                "Ridge":Ridge(),
+                "Lasso":Lasso(),
+                "Random Forest":RandomForestRegressor(),
+                "Extra Trees":ExtraTreesRegressor(),
+                "Gradient Boosting":GradientBoostingRegressor(),
+                "Decision Tree":DecisionTreeRegressor(),
+                "KNN":KNeighborsRegressor(),
+                "SVR":SVR()
 
-    if hasattr(best_model,"feature_importances_"):
+            }
 
-        importance = pd.DataFrame({
-            "Feature":X.columns,
-            "Importance":best_model.feature_importances_
-        })
+            best_score = 999999
 
-        importance = importance.sort_values(by="Importance",ascending=False)
+            for i,(name,model) in enumerate(models.items()):
 
-        fig = px.bar(importance,x="Feature",y="Importance")
+                model.fit(X_train,y_train)
 
-        st.plotly_chart(fig)
+                preds = model.predict(X_test)
 
-    else:
+                rmse = np.sqrt(mean_squared_error(y_test,preds))
 
-        st.info("Feature importance not available")
+                cv = cross_val_score(model,X,y,cv=5,
+                                     scoring="neg_mean_squared_error").mean()
 
-# ---------------- Download Model ----------------
+                results.append([name,rmse,cv])
 
-    st.subheader("Download Model")
+                if rmse < best_score:
+                    best_score = rmse
+                    best_model = model
+                    best_model_name = name
 
-    model_bytes = pickle.dumps(best_model)
+                progress.progress((i+1)/len(models))
 
-    st.download_button(
-        label="Download Trained Model",
-        data=model_bytes,
-        file_name="best_model.pkl"
-    )
+            res = pd.DataFrame(results,columns=["Model","RMSE","CV Score"])
 
-# ---------------- Prediction ----------------
+            st.dataframe(res)
 
-    st.subheader("Prediction")
+            fig = px.bar(res,x="Model",y="RMSE")
 
-    user_input = {}
+            st.plotly_chart(fig)
 
-    for col in X.columns:
+# ---------------- Best Model ----------------
 
-        user_input[col] = st.number_input(
-            f"Enter {col}",
-            value=float(X[col].mean())
+        st.subheader("🥇 Best Model")
+
+        st.success(f"Best Model Selected: {best_model_name}")
+
+# ---------------- Download ----------------
+
+        model_bytes = pickle.dumps(best_model)
+
+        st.download_button(
+            label="Download Trained Model",
+            data=model_bytes,
+            file_name="best_model.pkl"
         )
-
-    input_df = pd.DataFrame([user_input])
-
-    if st.button("Predict"):
-
-        pred = best_model.predict(input_df)
-
-        st.success(f"Prediction: {pred[0]}")
 
 else:
 
