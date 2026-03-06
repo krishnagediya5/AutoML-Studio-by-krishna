@@ -8,17 +8,17 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 
-# Classification Models
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier, ExtraTreesClassifier
+# -------- Classification --------
+from sklearn.linear_model import LogisticRegression, RidgeClassifier, SGDClassifier, PassiveAggressiveClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier, BaggingClassifier, HistGradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, BernoulliNB
 
-# Regression Models
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, ExtraTreesRegressor
+# -------- Regression --------
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, SGDRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor, AdaBoostRegressor, BaggingRegressor, HistGradientBoostingRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
@@ -29,8 +29,7 @@ from sklearn.metrics import accuracy_score, mean_squared_error
 st.set_page_config(page_title="AutoML Pro Studio", layout="wide")
 
 st.title("🚀 AutoML Pro Studio")
-st.write("Professional End-to-End Machine Learning Platform")
-
+st.write("Advanced AutoML with many ML algorithms")
 
 # ---------------- Upload Dataset ----------------
 
@@ -45,15 +44,14 @@ if file:
 
     df = st.session_state.df
 
-    st.success("Dataset Loaded Successfully")
+    st.success("Dataset Loaded")
 
-    # ---------------- DATA PREVIEW ----------------
+    # ---------------- Data Preview ----------------
 
     st.subheader("Dataset Preview")
-
     st.dataframe(df.head())
 
-    # ---------------- DATA INFO ----------------
+    # ---------------- Dataset Info ----------------
 
     st.subheader("Dataset Information")
 
@@ -74,18 +72,17 @@ if file:
 
     if len(numeric_cols) > 0:
 
-        col = st.selectbox("Distribution Plot Column", numeric_cols)
+        col = st.selectbox("Distribution Column", numeric_cols)
 
         fig = px.histogram(df, x=col)
 
         st.plotly_chart(fig)
 
-    # ---------------- PREPROCESSING ----------------
+    # ---------------- Preprocessing ----------------
 
     st.subheader("Preprocessing")
 
     st.write("Missing Value Count")
-
     st.write(df.isnull().sum())
 
     fill_cols = st.multiselect("Columns for Missing Fill", df.columns)
@@ -115,10 +112,9 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
+        st.success("Missing values handled")
 
-        st.success("Missing values filled")
-
-    # ---------------- ENCODING ----------------
+    # ---------------- Encoding ----------------
 
     st.subheader("Encoding")
 
@@ -135,7 +131,7 @@ if file:
 
         st.success("Encoding Applied")
 
-    # ---------------- SCALING ----------------
+    # ---------------- Scaling ----------------
 
     st.subheader("Scaling")
 
@@ -161,7 +157,7 @@ if file:
 
         st.success("Scaling Applied")
 
-    # ---------------- MODEL SETUP ----------------
+    # ---------------- Model Setup ----------------
 
     st.subheader("Model Setup")
 
@@ -172,7 +168,7 @@ if file:
     X = df.drop(columns=[target])
     y = df[target]
 
-    # ---------------- FEATURE SELECTION ----------------
+    # ---------------- Feature Selection ----------------
 
     st.subheader("Feature Selection")
 
@@ -191,19 +187,19 @@ if file:
 
     st.write("Selected Features:", list(selected_features))
 
-    # ---------------- TRAIN TEST SPLIT ----------------
+    # ---------------- Train Test Split ----------------
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 
-    # ---------------- HYPERPARAMETER TUNING ----------------
+    # ---------------- Hyperparameter Tuning ----------------
 
     st.subheader("Hyperparameter Tuning")
 
-    tune_model = st.checkbox("Enable Hyperparameter Tuning")
+    tune = st.checkbox("Enable Hyperparameter Tuning")
 
-    # ---------------- MODEL TRAINING ----------------
+    # ---------------- Model Training ----------------
 
     st.subheader("Model Leaderboard")
 
@@ -213,132 +209,103 @@ if file:
 
         models = {
 
-            "Logistic Regression": (
-                LogisticRegression(max_iter=1000),
-                {"C":[0.01,0.1,1,10]}
-            ),
-
-            "Random Forest": (
-                RandomForestClassifier(),
-                {"n_estimators":[100,200,300],
-                 "max_depth":[None,5,10]}
-            ),
-
-            "Decision Tree": (
-                DecisionTreeClassifier(),
-                {"max_depth":[None,5,10]}
-            ),
-
-            "KNN": (
-                KNeighborsClassifier(),
-                {"n_neighbors":[3,5,7]}
-            ),
-
-            "SVM": (
-                SVC(),
-                {"C":[0.1,1,10],
-                 "kernel":["linear","rbf"]}
-            )
+            "Logistic Regression": LogisticRegression(max_iter=1000),
+            "Ridge Classifier": RidgeClassifier(),
+            "SGD Classifier": SGDClassifier(),
+            "Passive Aggressive": PassiveAggressiveClassifier(),
+            "Random Forest": RandomForestClassifier(),
+            "Extra Trees": ExtraTreesClassifier(),
+            "Gradient Boosting": GradientBoostingClassifier(),
+            "AdaBoost": AdaBoostClassifier(),
+            "Bagging": BaggingClassifier(),
+            "Hist Gradient Boosting": HistGradientBoostingClassifier(),
+            "Decision Tree": DecisionTreeClassifier(),
+            "KNN": KNeighborsClassifier(),
+            "SVM": SVC(),
+            "Gaussian NB": GaussianNB(),
+            "Bernoulli NB": BernoulliNB()
 
         }
 
-        for name,(model,params) in models.items():
+        for name, model in models.items():
 
-            if tune_model:
+            if tune:
+
+                params = {}
 
                 search = RandomizedSearchCV(
                     model,
                     params,
-                    n_iter=5,
-                    cv=3,
-                    n_jobs=-1
+                    n_iter=1,
+                    cv=3
                 )
 
-                search.fit(X_train,y_train)
+                search.fit(X_train, y_train)
 
-                best = search.best_estimator_
+                model = search.best_estimator_
 
             else:
 
-                best = model.fit(X_train,y_train)
+                model.fit(X_train, y_train)
 
-            preds = best.predict(X_test)
+            preds = model.predict(X_test)
 
-            acc = accuracy_score(y_test,preds)
+            acc = accuracy_score(y_test, preds)
 
-            results.append([name,acc])
+            results.append([name, acc])
 
-        res = pd.DataFrame(results,columns=["Model","Accuracy"])
+        res = pd.DataFrame(results, columns=["Model", "Accuracy"])
 
         st.dataframe(res)
 
         best_model_name = res.sort_values(
-            "Accuracy",ascending=False
+            "Accuracy", ascending=False
         ).iloc[0]["Model"]
 
     else:
 
         models = {
 
-            "Linear Regression": (LinearRegression(),{}),
-
-            "Random Forest": (
-                RandomForestRegressor(),
-                {"n_estimators":[100,200],
-                 "max_depth":[None,5,10]}
-            ),
-
-            "Decision Tree": (
-                DecisionTreeRegressor(),
-                {"max_depth":[None,5,10]}
-            ),
-
-            "SVR": (
-                SVR(),
-                {"C":[0.1,1,10]}
-            )
+            "Linear Regression": LinearRegression(),
+            "Ridge": Ridge(),
+            "Lasso": Lasso(),
+            "ElasticNet": ElasticNet(),
+            "SGD Regressor": SGDRegressor(),
+            "Random Forest": RandomForestRegressor(),
+            "Extra Trees": ExtraTreesRegressor(),
+            "Gradient Boosting": GradientBoostingRegressor(),
+            "AdaBoost": AdaBoostRegressor(),
+            "Bagging": BaggingRegressor(),
+            "Hist Gradient Boosting": HistGradientBoostingRegressor(),
+            "Decision Tree": DecisionTreeRegressor(),
+            "KNN": KNeighborsRegressor(),
+            "SVR": SVR()
 
         }
 
-        for name,(model,params) in models.items():
+        for name, model in models.items():
 
-            if tune_model and params:
+            model.fit(X_train, y_train)
 
-                search = RandomizedSearchCV(
-                    model,
-                    params,
-                    n_iter=5,
-                    cv=3,
-                    n_jobs=-1
-                )
+            preds = model.predict(X_test)
 
-                search.fit(X_train,y_train)
+            rmse = np.sqrt(mean_squared_error(y_test, preds))
 
-                best = search.best_estimator_
+            results.append([name, rmse])
 
-            else:
-
-                best = model.fit(X_train,y_train)
-
-            preds = best.predict(X_test)
-
-            rmse = np.sqrt(mean_squared_error(y_test,preds))
-
-            results.append([name,rmse])
-
-        res = pd.DataFrame(results,columns=["Model","RMSE"])
+        res = pd.DataFrame(results, columns=["Model", "RMSE"])
 
         st.dataframe(res)
 
         best_model_name = res.sort_values("RMSE").iloc[0]["Model"]
 
-    best_model = dict(models)[best_model_name][0]
+    best_model = models[best_model_name]
 
-    best_model.fit(X_train,y_train)
+    best_model.fit(X_train, y_train)
 
     st.success(f"Best Model: {best_model_name}")
 
-    # ---------------- DOWNLOAD MODEL ----------------
+    # ---------------- Download Model ----------------
 
     st.subheader("Download Model")
 
@@ -347,10 +314,10 @@ if file:
     st.download_button(
         label="Download Trained Model",
         data=model_bytes,
-        file_name="trained_model.pkl"
+        file_name="model.pkl"
     )
 
-    # ---------------- PREDICTION ----------------
+    # ---------------- Prediction ----------------
 
     st.subheader("Prediction")
 
@@ -367,12 +334,9 @@ if file:
 
     if st.button("Predict"):
 
-        prediction = best_model.predict(input_df)
+        pred = best_model.predict(input_df)
 
-        if task == "Classification":
-            st.success(f"Predicted Class: {prediction[0]}")
-        else:
-            st.success(f"Predicted Value: {prediction[0]:.4f}")
+        st.success(f"Prediction: {pred[0]}")
 
 else:
 
