@@ -4,10 +4,11 @@ import numpy as np
 import pickle
 import plotly.express as px
 import plotly.graph_objects as go
+import shap
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 
 # Classification
 from sklearn.linear_model import LogisticRegression
@@ -64,6 +65,16 @@ if file:
     with col2:
         st.write("Missing Values")
         st.write(df.isnull().sum())
+
+# ---------------- Correlation Heatmap ----------------
+
+    st.subheader("Correlation Heatmap")
+
+    corr = df.corr(numeric_only=True)
+
+    fig = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r")
+
+    st.plotly_chart(fig)
 
 # ---------------- EDA ----------------
 
@@ -153,7 +164,7 @@ if file:
     X = df.drop(columns=[target])
     y = df[target]
 
-# ---------------- AUTO TASK DETECTION ----------------
+# ---------------- Auto Task Detection ----------------
 
     if y.dtype == "object" or len(y.unique()) <= 10:
         task = "Classification"
@@ -196,6 +207,8 @@ if file:
     best_model = None
     best_model_name = None
 
+    progress = st.progress(0)
+
 # ---------------- Classification ----------------
 
     if task=="Classification":
@@ -215,7 +228,7 @@ if file:
 
         }
 
-        for name,model in models.items():
+        for i,(name,model) in enumerate(models.items()):
 
             model.fit(X_train,y_train)
 
@@ -232,11 +245,13 @@ if file:
                 best_model = model
                 best_model_name = name
 
+            progress.progress((i+1)/len(models))
+
         res = pd.DataFrame(results,columns=["Model","Accuracy","CV Score"])
 
         st.dataframe(res)
 
-        fig = px.bar(res,x="Model",y="Accuracy",title="Model Comparison")
+        fig = px.bar(res,x="Model",y="Accuracy")
 
         st.plotly_chart(fig)
 
@@ -260,7 +275,7 @@ if file:
 
         }
 
-        for name,model in models.items():
+        for i,(name,model) in enumerate(models.items()):
 
             model.fit(X_train,y_train)
 
@@ -278,11 +293,13 @@ if file:
                 best_model = model
                 best_model_name = name
 
+            progress.progress((i+1)/len(models))
+
         res = pd.DataFrame(results,columns=["Model","RMSE","CV Score"])
 
         st.dataframe(res)
 
-        fig = px.bar(res,x="Model",y="RMSE",title="Model Comparison")
+        fig = px.bar(res,x="Model",y="RMSE")
 
         st.plotly_chart(fig)
 
@@ -294,71 +311,46 @@ if file:
 
     preds = best_model.predict(X_test)
 
-# ---------------- Evaluation ----------------
+# ---------------- SHAP Explainability ----------------
 
-    st.subheader("Model Evaluation")
+    st.subheader("Model Explainability (SHAP)")
 
-    if task=="Classification":
+    try:
 
-        st.write("Accuracy:",accuracy_score(y_test,preds))
-        st.write("Precision:",precision_score(y_test,preds,average="weighted",zero_division=0))
-        st.write("Recall:",recall_score(y_test,preds,average="weighted",zero_division=0))
-        st.write("F1 Score:",f1_score(y_test,preds,average="weighted",zero_division=0))
+        explainer = shap.Explainer(best_model, X_train)
 
-        cm = confusion_matrix(y_test,preds)
+        shap_values = explainer(X_test)
 
-        fig = px.imshow(cm,text_auto=True)
+        fig = shap.plots.bar(shap_values, show=False)
 
-        st.plotly_chart(fig)
+        st.pyplot(fig)
 
-# ROC Curve only if binary
+    except:
 
-        if hasattr(best_model,"predict_proba") and len(np.unique(y_test))==2:
+        st.info("SHAP not supported for this model")
 
-            probs = best_model.predict_proba(X_test)[:,1]
+# ---------------- Hyperparameter Tuning ----------------
 
-            fpr,tpr,_ = roc_curve(y_test,probs)
+    if st.button("Run Hyperparameter Tuning"):
 
-            roc_auc = auc(fpr,tpr)
+        param_grid = {
+            "n_estimators":[100,200,300],
+            "max_depth":[None,5,10]
+        }
 
-            fig = go.Figure()
+        tuner = RandomizedSearchCV(
+            RandomForestRegressor() if task=="Regression" else RandomForestClassifier(),
+            param_grid,
+            n_iter=5,
+            cv=3,
+            n_jobs=-1
+        )
 
-            fig.add_trace(go.Scatter(x=fpr,y=tpr,name="ROC Curve"))
+        tuner.fit(X_train,y_train)
 
-            fig.update_layout(
-                title=f"ROC Curve (AUC={roc_auc:.2f})",
-                xaxis_title="False Positive Rate",
-                yaxis_title="True Positive Rate"
-            )
+        best_model = tuner.best_estimator_
 
-            st.plotly_chart(fig)
-
-    else:
-
-        st.write("RMSE:",np.sqrt(mean_squared_error(y_test,preds)))
-        st.write("MAE:",mean_absolute_error(y_test,preds))
-        st.write("R2 Score:",r2_score(y_test,preds))
-
-# ---------------- Feature Importance ----------------
-
-    st.subheader("Feature Importance")
-
-    if hasattr(best_model,"feature_importances_"):
-
-        importance = pd.DataFrame({
-            "Feature":X.columns,
-            "Importance":best_model.feature_importances_
-        })
-
-        importance = importance.sort_values(by="Importance",ascending=False)
-
-        fig = px.bar(importance,x="Feature",y="Importance")
-
-        st.plotly_chart(fig)
-
-    else:
-
-        st.info("Feature importance not available")
+        st.success("Hyperparameter tuning completed")
 
 # ---------------- Download Model ----------------
 
@@ -371,27 +363,6 @@ if file:
         data=model_bytes,
         file_name="best_model.pkl"
     )
-
-# ---------------- Prediction ----------------
-
-    st.subheader("Prediction")
-
-    user_input = {}
-
-    for col in X.columns:
-
-        user_input[col] = st.number_input(
-            f"Enter {col}",
-            value=float(X[col].mean())
-        )
-
-    input_df = pd.DataFrame([user_input])
-
-    if st.button("Predict"):
-
-        pred = best_model.predict(input_df)
-
-        st.success(f"Prediction: {pred[0]}")
 
 else:
 
