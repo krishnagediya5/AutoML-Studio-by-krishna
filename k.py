@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV, learning_curve
 
-# Classification
+# Classification models
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -17,7 +17,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 
-# Regression
+# Regression models
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from sklearn.tree import DecisionTreeRegressor
@@ -37,7 +37,6 @@ st.title("🚀 Advanced AutoML Studio")
 # ---------------- Upload Dataset ----------------
 
 st.sidebar.header("Upload Dataset")
-
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
 if file is not None:
@@ -46,12 +45,12 @@ if file is not None:
         file.seek(0)
         df = pd.read_csv(file)
     except:
-        st.error("Error reading CSV file")
+        st.error("Error reading CSV")
         st.stop()
 
-    st.success("Dataset Loaded Successfully")
+    st.success("Dataset Loaded")
 
-# ---------------- Dataset Preview ----------------
+# ---------------- Preview ----------------
 
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
@@ -82,6 +81,13 @@ if file is not None:
 
     st.metric("Dataset Quality",quality)
 
+# ---------------- Auto Encoding ----------------
+
+    cat_cols = df.select_dtypes(include="object").columns
+
+    for col in cat_cols:
+        df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+
 # ---------------- EDA ----------------
 
     numeric_cols = df.select_dtypes(include=np.number).columns
@@ -94,65 +100,48 @@ if file is not None:
 
         st.plotly_chart(fig)
 
-# ---------------- Preprocessing ----------------
+# ---------------- Missing Handling ----------------
 
-    st.subheader("Preprocessing")
-
-    fill_cols = st.multiselect("Columns for Missing Fill",df.columns)
+    st.subheader("Missing Value Handling")
 
     fill_method = st.selectbox(
         "Fill Method",
-        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
+        ["Mean","Median","Mode"]
     )
 
-    if st.button("Apply Missing Fill"):
+    if st.button("Fill Missing Values"):
 
-        for col in fill_cols:
+        for col in df.columns:
 
-            if fill_method=="Mean" and pd.api.types.is_numeric_dtype(df[col]):
-                df[col] = df[col].fillna(df[col].mean())
+            if df[col].isnull().sum()>0:
 
-            elif fill_method=="Median" and pd.api.types.is_numeric_dtype(df[col]):
-                df[col] = df[col].fillna(df[col].median())
+                if fill_method=="Mean":
+                    df[col].fillna(df[col].mean(),inplace=True)
 
-            elif fill_method=="Mode":
-                df[col] = df[col].fillna(df[col].mode()[0])
+                elif fill_method=="Median":
+                    df[col].fillna(df[col].median(),inplace=True)
 
-            elif fill_method=="Forward Fill":
-                df[col] = df[col].ffill()
+                else:
+                    df[col].fillna(df[col].mode()[0],inplace=True)
 
-            elif fill_method=="Backward Fill":
-                df[col] = df[col].bfill()
-
-        st.success("Missing Values Handled")
-
-# ---------------- Encoding ----------------
-
-    cat_cols = df.select_dtypes(include="object").columns
-
-    if st.button("Apply Encoding"):
-
-        for col in cat_cols:
-            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
-
-        st.success("Encoding Applied")
+        st.success("Missing Values Filled")
 
 # ---------------- Scaling ----------------
 
-    num_cols = df.select_dtypes(include=np.number).columns
-
-    scale_cols = st.multiselect("Columns for Scaling",num_cols)
+    st.subheader("Scaling")
 
     scale_method = st.selectbox(
         "Scaling Method",
-        ["Standardization","Normalization"]
+        ["None","Standardization","Normalization"]
     )
 
-    if st.button("Apply Scaling"):
+    if scale_method!="None":
+
+        num_cols = df.select_dtypes(include=np.number).columns
 
         scaler = StandardScaler() if scale_method=="Standardization" else MinMaxScaler()
 
-        df[scale_cols] = scaler.fit_transform(df[scale_cols])
+        df[num_cols] = scaler.fit_transform(df[num_cols])
 
         st.success("Scaling Applied")
 
@@ -166,10 +155,10 @@ if file is not None:
 
     if auto_detect:
 
-        if df[target].nunique() < 20:
-            task = "Classification"
+        if df[target].nunique()<20:
+            task="Classification"
         else:
-            task = "Regression"
+            task="Regression"
 
         st.info(f"Detected Task: {task}")
 
@@ -177,10 +166,20 @@ if file is not None:
 
         task = st.radio("Task Type",["Classification","Regression"])
 
+# ---------------- Feature Selection ----------------
+
     X = df.drop(columns=[target])
+
+    # keep numeric only
+    X = X.select_dtypes(include=np.number)
+
     y = df[target]
 
-# ---------------- Feature Selection ----------------
+    if X.shape[1]==0:
+        st.error("No numeric features available")
+        st.stop()
+
+    st.subheader("Feature Selection")
 
     k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
 
@@ -197,7 +196,7 @@ if file is not None:
 
     st.write("Selected Features:",list(selected_features))
 
-# ---------------- Split ----------------
+# ---------------- Train Test Split ----------------
 
     X_train,X_test,y_train,y_test = train_test_split(
         X,y,test_size=0.2,random_state=42
@@ -212,9 +211,9 @@ if file is not None:
     st.subheader("Model Leaderboard")
 
     results=[]
+    best_score=-999
     best_model=None
     best_model_name=None
-    best_score=-999
 
 # ---------------- Classification ----------------
 
@@ -240,11 +239,11 @@ if file is not None:
                     "max_depth":[None,5,10]
                 }
 
-                search=RandomizedSearchCV(model,params,n_iter=5,cv=3)
+                search = RandomizedSearchCV(model,params,n_iter=5,cv=3)
 
                 search.fit(X_train,y_train)
 
-                model=search.best_estimator_
+                model = search.best_estimator_
 
             else:
                 model.fit(X_train,y_train)
@@ -310,7 +309,7 @@ if file is not None:
 
 # ---------------- Best Model ----------------
 
-    st.subheader("🏆 Best Model")
+    st.subheader("Best Model")
 
     st.success(best_model_name)
 
@@ -406,5 +405,4 @@ if file is not None:
     )
 
 else:
-
     st.info("Upload dataset to start AutoML")
