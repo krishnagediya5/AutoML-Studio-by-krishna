@@ -108,7 +108,6 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-
         st.success("Missing Values Handled")
 
 # ---------------- Encoding ----------------
@@ -120,11 +119,9 @@ if file:
     if st.button("Apply Encoding"):
 
         for col in encode_cols:
-
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
         st.session_state.df = df
-
         st.success("Encoding Applied")
 
 # ---------------- Scaling ----------------
@@ -145,7 +142,6 @@ if file:
         df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
         st.session_state.df = df
-
         st.success("Scaling Applied")
 
 # ---------------- Model Setup ----------------
@@ -154,10 +150,17 @@ if file:
 
     target = st.selectbox("Target Column", df.columns)
 
-    task = st.radio("Task Type", ["Classification","Regression"])
-
     X = df.drop(columns=[target])
     y = df[target]
+
+# ---------------- AUTO TASK DETECTION ----------------
+
+    if y.dtype == "object" or len(y.unique()) <= 10:
+        task = "Classification"
+    else:
+        task = "Regression"
+
+    st.write("Detected Task:", task)
 
 # ---------------- Feature Selection ----------------
 
@@ -190,13 +193,14 @@ if file:
 
     results = []
 
-    best_score = -999
     best_model = None
     best_model_name = None
 
 # ---------------- Classification ----------------
 
     if task=="Classification":
+
+        best_score = 0
 
         models = {
 
@@ -240,6 +244,8 @@ if file:
 
     else:
 
+        best_score = float("inf")
+
         models = {
 
             "Linear Regression":LinearRegression(),
@@ -267,7 +273,7 @@ if file:
 
             results.append([name,rmse,cv])
 
-            if best_model is None or rmse < best_score:
+            if rmse < best_score:
                 best_score = rmse
                 best_model = model
                 best_model_name = name
@@ -295,9 +301,9 @@ if file:
     if task=="Classification":
 
         st.write("Accuracy:",accuracy_score(y_test,preds))
-        st.write("Precision:",precision_score(y_test,preds,average="weighted"))
-        st.write("Recall:",recall_score(y_test,preds,average="weighted"))
-        st.write("F1 Score:",f1_score(y_test,preds,average="weighted"))
+        st.write("Precision:",precision_score(y_test,preds,average="weighted",zero_division=0))
+        st.write("Recall:",recall_score(y_test,preds,average="weighted",zero_division=0))
+        st.write("F1 Score:",f1_score(y_test,preds,average="weighted",zero_division=0))
 
         cm = confusion_matrix(y_test,preds)
 
@@ -305,9 +311,9 @@ if file:
 
         st.plotly_chart(fig)
 
-# ROC Curve
+# ROC Curve only if binary
 
-        if hasattr(best_model,"predict_proba"):
+        if hasattr(best_model,"predict_proba") and len(np.unique(y_test))==2:
 
             probs = best_model.predict_proba(X_test)[:,1]
 
