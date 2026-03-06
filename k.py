@@ -4,13 +4,19 @@ import numpy as np
 import pickle
 import plotly.express as px
 import plotly.graph_objects as go
-import shap
+
+# Optional explainability
+try:
+    import shap
+    SHAP_AVAILABLE = True
+except:
+    SHAP_AVAILABLE = False
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 
-# Classification
+# Classification models
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -18,7 +24,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 
-# Regression
+# Regression models
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from sklearn.tree import DecisionTreeRegressor
@@ -31,14 +37,13 @@ from sklearn.metrics import (
     roc_curve, auc
 )
 
-st.set_page_config(page_title="AutoML Pro", layout="wide")
+st.set_page_config(page_title="AutoML Pro Studio", layout="wide")
 
-st.title("🚀 AutoML Pro Studio")
+st.title("🚀 AutoML Pro Studio (Advanced)")
 
-# ---------------- Upload Dataset ----------------
+# ================= Upload =================
 
 st.sidebar.header("Upload Dataset")
-
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
 if file:
@@ -50,12 +55,10 @@ if file:
 
     st.success("Dataset Loaded Successfully")
 
-# ---------------- Dataset Preview ----------------
+# ================= Preview =================
 
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
-
-# ---------------- Dataset Info ----------------
 
     col1, col2 = st.columns(2)
 
@@ -66,17 +69,21 @@ if file:
         st.write("Missing Values")
         st.write(df.isnull().sum())
 
-# ---------------- Correlation Heatmap ----------------
+# ================= Correlation Heatmap =================
 
     st.subheader("Correlation Heatmap")
 
     corr = df.corr(numeric_only=True)
 
-    fig = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r")
+    fig = px.imshow(
+        corr,
+        text_auto=True,
+        color_continuous_scale="RdBu_r"
+    )
 
     st.plotly_chart(fig)
 
-# ---------------- EDA ----------------
+# ================= EDA =================
 
     numeric_cols = df.select_dtypes(include=np.number).columns
 
@@ -88,7 +95,7 @@ if file:
 
         st.plotly_chart(fig)
 
-# ---------------- Preprocessing ----------------
+# ================= Preprocessing =================
 
     st.subheader("Preprocessing")
 
@@ -121,7 +128,7 @@ if file:
         st.session_state.df = df
         st.success("Missing Values Handled")
 
-# ---------------- Encoding ----------------
+# ================= Encoding =================
 
     cat_cols = df.select_dtypes(include="object").columns
 
@@ -135,7 +142,7 @@ if file:
         st.session_state.df = df
         st.success("Encoding Applied")
 
-# ---------------- Scaling ----------------
+# ================= Scaling =================
 
     num_cols = df.select_dtypes(include=np.number).columns
 
@@ -155,7 +162,7 @@ if file:
         st.session_state.df = df
         st.success("Scaling Applied")
 
-# ---------------- Model Setup ----------------
+# ================= Model Setup =================
 
     st.subheader("Model Setup")
 
@@ -164,7 +171,7 @@ if file:
     X = df.drop(columns=[target])
     y = df[target]
 
-# ---------------- Auto Task Detection ----------------
+# ================= Auto Task Detection =================
 
     if y.dtype == "object" or len(y.unique()) <= 10:
         task = "Classification"
@@ -173,7 +180,7 @@ if file:
 
     st.write("Detected Task:", task)
 
-# ---------------- Feature Selection ----------------
+# ================= Feature Selection =================
 
     st.subheader("Feature Selection")
 
@@ -192,13 +199,13 @@ if file:
 
     st.write("Selected Features:",list(selected_features))
 
-# ---------------- Train Test Split ----------------
+# ================= Train Test Split =================
 
     X_train,X_test,y_train,y_test = train_test_split(
         X,y,test_size=0.2,random_state=42
     )
 
-# ---------------- Models ----------------
+# ================= Models =================
 
     st.subheader("Model Leaderboard")
 
@@ -209,14 +216,13 @@ if file:
 
     progress = st.progress(0)
 
-# ---------------- Classification ----------------
+# ================= Classification =================
 
     if task=="Classification":
 
         best_score = 0
 
         models = {
-
             "Logistic Regression":LogisticRegression(max_iter=1000),
             "Random Forest":RandomForestClassifier(),
             "Extra Trees":ExtraTreesClassifier(),
@@ -225,7 +231,6 @@ if file:
             "KNN":KNeighborsClassifier(),
             "SVM":SVC(probability=True),
             "Naive Bayes":GaussianNB()
-
         }
 
         for i,(name,model) in enumerate(models.items()):
@@ -255,14 +260,13 @@ if file:
 
         st.plotly_chart(fig)
 
-# ---------------- Regression ----------------
+# ================= Regression =================
 
     else:
 
         best_score = float("inf")
 
         models = {
-
             "Linear Regression":LinearRegression(),
             "Ridge":Ridge(),
             "Lasso":Lasso(),
@@ -272,7 +276,6 @@ if file:
             "Decision Tree":DecisionTreeRegressor(),
             "KNN":KNeighborsRegressor(),
             "SVR":SVR()
-
         }
 
         for i,(name,model) in enumerate(models.items()):
@@ -283,8 +286,10 @@ if file:
 
             rmse = np.sqrt(mean_squared_error(y_test,preds))
 
-            cv = cross_val_score(model,X,y,cv=5,
-                                 scoring="neg_mean_squared_error").mean()
+            cv = cross_val_score(
+                model,X,y,cv=5,
+                scoring="neg_mean_squared_error"
+            ).mean()
 
             results.append([name,rmse,cv])
 
@@ -303,33 +308,82 @@ if file:
 
         st.plotly_chart(fig)
 
-# ---------------- Best Model ----------------
+# ================= Best Model =================
 
-    st.subheader("🥇 Best Model")
+    st.subheader("🏆 Best Model")
 
     st.success(f"Best Model Selected: {best_model_name}")
 
     preds = best_model.predict(X_test)
 
-# ---------------- SHAP Explainability ----------------
+# ================= Evaluation =================
 
-    st.subheader("Model Explainability (SHAP)")
+    st.subheader("Model Evaluation")
 
-    try:
+    if task=="Classification":
 
-        explainer = shap.Explainer(best_model, X_train)
+        st.write("Accuracy:",accuracy_score(y_test,preds))
+        st.write("Precision:",precision_score(y_test,preds,average="weighted",zero_division=0))
+        st.write("Recall:",recall_score(y_test,preds,average="weighted",zero_division=0))
+        st.write("F1 Score:",f1_score(y_test,preds,average="weighted",zero_division=0))
 
-        shap_values = explainer(X_test)
+        cm = confusion_matrix(y_test,preds)
 
-        fig = shap.plots.bar(shap_values, show=False)
+        fig = px.imshow(cm,text_auto=True)
 
-        st.pyplot(fig)
+        st.plotly_chart(fig)
 
-    except:
+    else:
 
-        st.info("SHAP not supported for this model")
+        st.write("RMSE:",np.sqrt(mean_squared_error(y_test,preds)))
+        st.write("MAE:",mean_absolute_error(y_test,preds))
+        st.write("R2 Score:",r2_score(y_test,preds))
 
-# ---------------- Hyperparameter Tuning ----------------
+# ================= Feature Importance =================
+
+    st.subheader("Feature Importance")
+
+    importance = None
+
+    if hasattr(best_model,"feature_importances_"):
+        importance = best_model.feature_importances_
+
+    elif hasattr(best_model,"coef_"):
+        importance = np.abs(best_model.coef_)
+
+    if importance is not None:
+
+        imp_df = pd.DataFrame({
+            "Feature":X.columns,
+            "Importance":importance
+        })
+
+        imp_df = imp_df.sort_values(by="Importance",ascending=False)
+
+        fig = px.bar(imp_df,x="Feature",y="Importance")
+
+        st.plotly_chart(fig)
+
+# ================= SHAP =================
+
+    if SHAP_AVAILABLE:
+
+        st.subheader("Model Explainability (SHAP)")
+
+        try:
+
+            explainer = shap.Explainer(best_model, X_train)
+
+            shap_values = explainer(X_test)
+
+            fig = shap.plots.bar(shap_values, show=False)
+
+            st.pyplot(fig)
+
+        except:
+            st.info("SHAP not supported for this model")
+
+# ================= Hyperparameter Tuning =================
 
     if st.button("Run Hyperparameter Tuning"):
 
@@ -352,7 +406,7 @@ if file:
 
         st.success("Hyperparameter tuning completed")
 
-# ---------------- Download Model ----------------
+# ================= Download Model =================
 
     st.subheader("Download Model")
 
@@ -363,6 +417,27 @@ if file:
         data=model_bytes,
         file_name="best_model.pkl"
     )
+
+# ================= Prediction =================
+
+    st.subheader("Prediction")
+
+    user_input = {}
+
+    for col in X.columns:
+
+        user_input[col] = st.number_input(
+            f"Enter {col}",
+            value=float(X[col].mean())
+        )
+
+    input_df = pd.DataFrame([user_input])
+
+    if st.button("Predict"):
+
+        pred = best_model.predict(input_df)
+
+        st.success(f"Prediction: {pred[0]}")
 
 else:
 
