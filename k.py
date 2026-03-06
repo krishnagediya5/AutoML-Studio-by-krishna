@@ -1,41 +1,58 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
 import pickle
+import plotly.express as px
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split
 
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+# Classification models
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier, ExtraTreesClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+
+# Regression models
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, ExtraTreesRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import SVR
 
 from sklearn.metrics import accuracy_score, mean_squared_error
 
-st.set_page_config(page_title="AutoML Pro", layout="wide")
+
+st.set_page_config(page_title="AutoML Pro Studio", layout="wide")
 
 st.title("🚀 AutoML Pro Studio")
-st.write("Advanced End-to-End Machine Learning Platform")
+st.write("Professional End-to-End Machine Learning Platform")
 
 # ---------------- Upload Dataset ----------------
 
 st.sidebar.header("📂 Upload Dataset")
+
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
 if file:
 
-    df = pd.read_csv(file)
+    if "df" not in st.session_state:
+        st.session_state.df = pd.read_csv(file)
+
+    df = st.session_state.df
 
     st.success("Dataset Loaded Successfully")
 
     # ---------------- DATA PREVIEW ----------------
 
     st.subheader("📊 Dataset Preview")
+
     st.dataframe(df.head())
 
-    # ---------------- BASIC INFO ----------------
+    # ---------------- DATA INFO ----------------
 
     st.subheader("📋 Dataset Information")
 
@@ -43,7 +60,7 @@ if file:
 
     with col1:
         st.write("Shape:", df.shape)
-        st.write("Columns:", df.columns.tolist())
+        st.write("Columns:", list(df.columns))
 
     with col2:
         st.write("Missing Values")
@@ -58,7 +75,7 @@ if file:
     if len(numeric_cols) > 0:
 
         selected_col = st.selectbox(
-            "Select Column for Distribution",
+            "Distribution Plot Column",
             numeric_cols
         )
 
@@ -68,9 +85,9 @@ if file:
 
     # ---------------- CORRELATION ----------------
 
-    st.subheader("🔥 Correlation Heatmap")
-
     if len(numeric_cols) > 1:
+
+        st.subheader("🔥 Correlation Heatmap")
 
         corr = df[numeric_cols].corr()
 
@@ -82,24 +99,20 @@ if file:
 
     st.subheader("🧹 Preprocessing")
 
-    # Missing Value Count
     st.write("### Missing Value Count")
+
     st.write(df.isnull().sum())
 
-    # Fill Missing Values
-    st.write("### Fill Missing Values")
+    # Missing fill
 
-    fill_cols = st.multiselect(
-        "Select Columns",
-        df.columns
-    )
+    fill_cols = st.multiselect("Columns for Missing Fill", df.columns)
 
     fill_method = st.selectbox(
-        "Select Method",
+        "Fill Method",
         ["Mean", "Median", "Mode", "Forward Fill", "Backward Fill"]
     )
 
-    if st.button("Apply Missing Value Fill"):
+    if st.button("Apply Missing Fill"):
 
         for col in fill_cols:
 
@@ -112,9 +125,7 @@ if file:
                     df[col] = df[col].fillna(df[col].median())
 
             elif fill_method == "Mode":
-                mode_val = df[col].mode()
-                if not mode_val.empty:
-                    df[col] = df[col].fillna(mode_val.iloc[0])
+                df[col] = df[col].fillna(df[col].mode()[0])
 
             elif fill_method == "Forward Fill":
                 df[col] = df[col].ffill()
@@ -122,7 +133,9 @@ if file:
             elif fill_method == "Backward Fill":
                 df[col] = df[col].bfill()
 
-        st.success("Missing Values Filled")
+        st.session_state.df = df
+
+        st.success("Missing values filled")
 
     # ---------------- ENCODING ----------------
 
@@ -130,17 +143,16 @@ if file:
 
     cat_cols = df.select_dtypes(include="object").columns
 
-    encode_cols = st.multiselect(
-        "Select Categorical Columns",
-        cat_cols
-    )
+    encode_cols = st.multiselect("Categorical Columns", cat_cols)
 
     if st.button("Apply Encoding"):
 
         for col in encode_cols:
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
-        st.success("Encoding Applied")
+        st.session_state.df = df
+
+        st.success("Encoding applied")
 
     # ---------------- SCALING ----------------
 
@@ -148,10 +160,7 @@ if file:
 
     num_cols = df.select_dtypes(include=np.number).columns
 
-    scale_cols = st.multiselect(
-        "Select Numeric Columns",
-        num_cols
-    )
+    scale_cols = st.multiselect("Numeric Columns", num_cols)
 
     scale_method = st.selectbox(
         "Scaling Method",
@@ -167,16 +176,15 @@ if file:
 
         df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
-        st.success("Scaling Applied")
+        st.session_state.df = df
+
+        st.success("Scaling applied")
 
     # ---------------- TARGET ----------------
 
     st.subheader("🎯 Model Setup")
 
-    target = st.selectbox(
-        "Select Target Column",
-        df.columns
-    )
+    target = st.selectbox("Target Column", df.columns)
 
     task = st.radio(
         "Task Type",
@@ -190,12 +198,7 @@ if file:
 
     st.subheader("🎯 Feature Selection")
 
-    k = st.slider(
-        "Select Top K Features",
-        1,
-        X.shape[1],
-        min(5, X.shape[1])
-    )
+    k = st.slider("Top K Features", 1, X.shape[1], min(5, X.shape[1]))
 
     selector = SelectKBest(
         f_classif if task == "Classification" else f_regression,
@@ -210,16 +213,13 @@ if file:
 
     st.write("Selected Features:", list(selected_features))
 
-    # ---------------- TRAIN TEST SPLIT ----------------
+    # ---------------- TRAIN TEST ----------------
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42
+        X, y, test_size=0.2, random_state=42
     )
 
-    # ---------------- MODEL TRAINING ----------------
+    # ---------------- MODELS ----------------
 
     st.subheader("🤖 Model Leaderboard")
 
@@ -228,9 +228,17 @@ if file:
     if task == "Classification":
 
         models = {
+
             "Logistic Regression": LogisticRegression(max_iter=1000),
             "Random Forest": RandomForestClassifier(),
-            "Decision Tree": DecisionTreeClassifier()
+            "Decision Tree": DecisionTreeClassifier(),
+            "KNN": KNeighborsClassifier(),
+            "SVM": SVC(),
+            "Naive Bayes": GaussianNB(),
+            "Gradient Boosting": GradientBoostingClassifier(),
+            "AdaBoost": AdaBoostClassifier(),
+            "Extra Trees": ExtraTreesClassifier()
+
         }
 
         for name, model in models.items():
@@ -248,16 +256,24 @@ if file:
         st.dataframe(res)
 
         best_model_name = res.sort_values(
-            "Accuracy",
-            ascending=False
+            "Accuracy", ascending=False
         ).iloc[0]["Model"]
 
     else:
 
         models = {
+
             "Linear Regression": LinearRegression(),
+            "Ridge": Ridge(),
+            "Lasso": Lasso(),
             "Random Forest": RandomForestRegressor(),
-            "Decision Tree": DecisionTreeRegressor()
+            "Decision Tree": DecisionTreeRegressor(),
+            "KNN": KNeighborsRegressor(),
+            "SVR": SVR(),
+            "Gradient Boosting": GradientBoostingRegressor(),
+            "AdaBoost": AdaBoostRegressor(),
+            "Extra Trees": ExtraTreesRegressor()
+
         }
 
         for name, model in models.items():
@@ -282,25 +298,6 @@ if file:
 
     st.success(f"🏆 Best Model: {best_model_name}")
 
-    # ---------------- FEATURE IMPORTANCE ----------------
-
-    st.subheader("📊 Feature Importance")
-
-    if hasattr(best_model, "feature_importances_"):
-
-        importance = pd.DataFrame({
-            "Feature": X.columns,
-            "Importance": best_model.feature_importances_
-        })
-
-        fig = px.bar(
-            importance,
-            x="Feature",
-            y="Importance"
-        )
-
-        st.plotly_chart(fig)
-
     # ---------------- DOWNLOAD MODEL ----------------
 
     st.subheader("💾 Download Model")
@@ -315,7 +312,7 @@ if file:
 
     # ---------------- PREDICTION ----------------
 
-    st.subheader("🔮 Make Prediction")
+    st.subheader("🔮 Prediction")
 
     user_input = {}
 
@@ -339,4 +336,4 @@ if file:
 
 else:
 
-    st.info("Upload a dataset to start AutoML.")
+    st.info("Upload a dataset to start AutoML")
