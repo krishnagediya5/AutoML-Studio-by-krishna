@@ -10,16 +10,28 @@ from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, cross_val_score
 
 # Classification
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    ExtraTreesClassifier,
+    GradientBoostingClassifier,
+    AdaBoostClassifier,
+    HistGradientBoostingClassifier
+)
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 
 # Regression
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, SGDRegressor
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    ExtraTreesRegressor,
+    GradientBoostingRegressor,
+    AdaBoostRegressor,
+    HistGradientBoostingRegressor
+)
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
@@ -32,7 +44,7 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="AutoML Pro", layout="wide")
 
-st.title("🚀 AutoML Pro Studio")
+st.title("🚀 Advanced AutoML Studio")
 
 # ---------------- Upload Dataset ----------------
 
@@ -40,12 +52,14 @@ st.sidebar.header("Upload Dataset")
 
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
-if file:
+if file is not None:
 
-    if "df" not in st.session_state:
-        st.session_state.df = pd.read_csv(file)
-
-    df = st.session_state.df
+    try:
+        file.seek(0)
+        df = pd.read_csv(file)
+    except:
+        st.error("Error reading CSV file")
+        st.stop()
 
     st.success("Dataset Loaded Successfully")
 
@@ -107,8 +121,6 @@ if file:
             elif fill_method == "Backward Fill":
                 df[col] = df[col].bfill()
 
-        st.session_state.df = df
-
         st.success("Missing Values Handled")
 
 # ---------------- Encoding ----------------
@@ -122,8 +134,6 @@ if file:
         for col in encode_cols:
 
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
-
-        st.session_state.df = df
 
         st.success("Encoding Applied")
 
@@ -144,8 +154,6 @@ if file:
 
         df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
-        st.session_state.df = df
-
         st.success("Scaling Applied")
 
 # ---------------- Model Setup ----------------
@@ -157,11 +165,19 @@ if file:
     task = st.radio("Task Type", ["Classification","Regression"])
 
     X = df.drop(columns=[target])
+
+    # keep numeric only
+    X = X.select_dtypes(include=np.number)
+
     y = df[target]
 
 # ---------------- Feature Selection ----------------
 
     st.subheader("Feature Selection")
+
+    if X.shape[1] == 0:
+        st.error("No numeric features available for feature selection")
+        st.stop()
 
     k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
 
@@ -189,7 +205,6 @@ if file:
     st.subheader("Model Leaderboard")
 
     results = []
-
     best_score = -999
     best_model = None
     best_model_name = None
@@ -200,14 +215,27 @@ if file:
 
         models = {
 
-            "Logistic Regression":LogisticRegression(max_iter=1000),
-            "Random Forest":RandomForestClassifier(),
-            "Extra Trees":ExtraTreesClassifier(),
-            "Gradient Boosting":GradientBoostingClassifier(),
-            "Decision Tree":DecisionTreeClassifier(),
-            "KNN":KNeighborsClassifier(),
-            "SVM":SVC(probability=True),
-            "Naive Bayes":GaussianNB()
+            "Logistic Regression": LogisticRegression(max_iter=1000),
+
+            "Random Forest": RandomForestClassifier(),
+
+            "Extra Trees": ExtraTreesClassifier(),
+
+            "Gradient Boosting": GradientBoostingClassifier(),
+
+            "AdaBoost": AdaBoostClassifier(),
+
+            "Hist Gradient Boosting": HistGradientBoostingClassifier(),
+
+            "Decision Tree": DecisionTreeClassifier(),
+
+            "KNN": KNeighborsClassifier(),
+
+            "SVM": SVC(probability=True),
+
+            "Naive Bayes": GaussianNB(),
+
+            "SGD Classifier": SGDClassifier()
 
         }
 
@@ -242,15 +270,31 @@ if file:
 
         models = {
 
-            "Linear Regression":LinearRegression(),
-            "Ridge":Ridge(),
-            "Lasso":Lasso(),
-            "Random Forest":RandomForestRegressor(),
-            "Extra Trees":ExtraTreesRegressor(),
-            "Gradient Boosting":GradientBoostingRegressor(),
-            "Decision Tree":DecisionTreeRegressor(),
-            "KNN":KNeighborsRegressor(),
-            "SVR":SVR()
+            "Linear Regression": LinearRegression(),
+
+            "Ridge": Ridge(),
+
+            "Lasso": Lasso(),
+
+            "ElasticNet": ElasticNet(),
+
+            "Random Forest": RandomForestRegressor(),
+
+            "Extra Trees": ExtraTreesRegressor(),
+
+            "Gradient Boosting": GradientBoostingRegressor(),
+
+            "AdaBoost": AdaBoostRegressor(),
+
+            "Hist Gradient Boosting": HistGradientBoostingRegressor(),
+
+            "Decision Tree": DecisionTreeRegressor(),
+
+            "KNN": KNeighborsRegressor(),
+
+            "SVR": SVR(),
+
+            "SGD Regressor": SGDRegressor()
 
         }
 
@@ -301,11 +345,7 @@ if file:
 
         cm = confusion_matrix(y_test,preds)
 
-        fig = px.imshow(cm,text_auto=True)
-
-        st.plotly_chart(fig)
-
-# ROC Curve
+        st.plotly_chart(px.imshow(cm,text_auto=True))
 
         if hasattr(best_model,"predict_proba"):
 
@@ -349,10 +389,6 @@ if file:
         fig = px.bar(importance,x="Feature",y="Importance")
 
         st.plotly_chart(fig)
-
-    else:
-
-        st.info("Feature importance not available")
 
 # ---------------- Download Model ----------------
 
