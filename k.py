@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 
-# -------- Classification --------
+# Classification Models
 from sklearn.linear_model import LogisticRegression, RidgeClassifier, SGDClassifier, PassiveAggressiveClassifier
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier, BaggingClassifier, HistGradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -16,23 +16,31 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
 
-# -------- Regression --------
+# Regression Models
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, SGDRegressor
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor, AdaBoostRegressor, BaggingRegressor, HistGradientBoostingRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 
-from sklearn.metrics import accuracy_score, mean_squared_error
-
+# Metrics
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score
+)
 
 st.set_page_config(page_title="AutoML Pro Studio", layout="wide")
 
 st.title("🚀 AutoML Pro Studio")
-st.write("Advanced AutoML with many ML algorithms")
+st.write("Advanced AutoML with Model Evaluation")
 
-# ---------------- Upload Dataset ----------------
-
+# Upload Dataset
 st.sidebar.header("Upload Dataset")
 
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
@@ -46,13 +54,11 @@ if file:
 
     st.success("Dataset Loaded")
 
-    # ---------------- Data Preview ----------------
-
+    # Dataset Preview
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-    # ---------------- Dataset Info ----------------
-
+    # Dataset Info
     st.subheader("Dataset Information")
 
     col1, col2 = st.columns(2)
@@ -64,8 +70,7 @@ if file:
         st.write("Missing Values")
         st.write(df.isnull().sum())
 
-    # ---------------- EDA ----------------
-
+    # EDA
     st.subheader("EDA")
 
     numeric_cols = df.select_dtypes(include=np.number).columns
@@ -78,8 +83,7 @@ if file:
 
         st.plotly_chart(fig)
 
-    # ---------------- Preprocessing ----------------
-
+    # Preprocessing
     st.subheader("Preprocessing")
 
     st.write("Missing Value Count")
@@ -114,8 +118,7 @@ if file:
         st.session_state.df = df
         st.success("Missing values handled")
 
-    # ---------------- Encoding ----------------
-
+    # Encoding
     st.subheader("Encoding")
 
     cat_cols = df.select_dtypes(include="object").columns
@@ -128,11 +131,9 @@ if file:
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
         st.session_state.df = df
-
         st.success("Encoding Applied")
 
-    # ---------------- Scaling ----------------
-
+    # Scaling
     st.subheader("Scaling")
 
     num_cols = df.select_dtypes(include=np.number).columns
@@ -157,8 +158,7 @@ if file:
 
         st.success("Scaling Applied")
 
-    # ---------------- Model Setup ----------------
-
+    # Model Setup
     st.subheader("Model Setup")
 
     target = st.selectbox("Target Column", df.columns)
@@ -168,8 +168,7 @@ if file:
     X = df.drop(columns=[target])
     y = df[target]
 
-    # ---------------- Feature Selection ----------------
-
+    # Feature Selection
     st.subheader("Feature Selection")
 
     k = st.slider("Top K Features", 1, X.shape[1], min(5, X.shape[1]))
@@ -187,20 +186,12 @@ if file:
 
     st.write("Selected Features:", list(selected_features))
 
-    # ---------------- Train Test Split ----------------
-
+    # Train Test Split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 
-    # ---------------- Hyperparameter Tuning ----------------
-
-    st.subheader("Hyperparameter Tuning")
-
-    tune = st.checkbox("Enable Hyperparameter Tuning")
-
-    # ---------------- Model Training ----------------
-
+    # Model Training
     st.subheader("Model Leaderboard")
 
     results = []
@@ -208,45 +199,21 @@ if file:
     if task == "Classification":
 
         models = {
-
             "Logistic Regression": LogisticRegression(max_iter=1000),
-            "Ridge Classifier": RidgeClassifier(),
-            "SGD Classifier": SGDClassifier(),
-            "Passive Aggressive": PassiveAggressiveClassifier(),
             "Random Forest": RandomForestClassifier(),
             "Extra Trees": ExtraTreesClassifier(),
             "Gradient Boosting": GradientBoostingClassifier(),
             "AdaBoost": AdaBoostClassifier(),
-            "Bagging": BaggingClassifier(),
-            "Hist Gradient Boosting": HistGradientBoostingClassifier(),
             "Decision Tree": DecisionTreeClassifier(),
             "KNN": KNeighborsClassifier(),
             "SVM": SVC(),
-            "Gaussian NB": GaussianNB(),
-            "Bernoulli NB": BernoulliNB()
-
+            "GaussianNB": GaussianNB(),
+            "BernoulliNB": BernoulliNB()
         }
 
         for name, model in models.items():
 
-            if tune:
-
-                params = {}
-
-                search = RandomizedSearchCV(
-                    model,
-                    params,
-                    n_iter=1,
-                    cv=3
-                )
-
-                search.fit(X_train, y_train)
-
-                model = search.best_estimator_
-
-            else:
-
-                model.fit(X_train, y_train)
+            model.fit(X_train, y_train)
 
             preds = model.predict(X_test)
 
@@ -262,25 +229,39 @@ if file:
             "Accuracy", ascending=False
         ).iloc[0]["Model"]
 
+        best_model = models[best_model_name]
+
+        best_model.fit(X_train, y_train)
+
+        preds = best_model.predict(X_test)
+
+        # Evaluation
+        st.subheader("Model Evaluation")
+
+        st.write("Accuracy:", accuracy_score(y_test, preds))
+        st.write("Precision:", precision_score(y_test, preds, average="weighted"))
+        st.write("Recall:", recall_score(y_test, preds, average="weighted"))
+        st.write("F1 Score:", f1_score(y_test, preds, average="weighted"))
+
+        cm = confusion_matrix(y_test, preds)
+
+        fig = px.imshow(cm, text_auto=True)
+
+        st.plotly_chart(fig)
+
     else:
 
         models = {
-
             "Linear Regression": LinearRegression(),
             "Ridge": Ridge(),
             "Lasso": Lasso(),
             "ElasticNet": ElasticNet(),
-            "SGD Regressor": SGDRegressor(),
             "Random Forest": RandomForestRegressor(),
             "Extra Trees": ExtraTreesRegressor(),
             "Gradient Boosting": GradientBoostingRegressor(),
-            "AdaBoost": AdaBoostRegressor(),
-            "Bagging": BaggingRegressor(),
-            "Hist Gradient Boosting": HistGradientBoostingRegressor(),
             "Decision Tree": DecisionTreeRegressor(),
             "KNN": KNeighborsRegressor(),
             "SVR": SVR()
-
         }
 
         for name, model in models.items():
@@ -299,14 +280,20 @@ if file:
 
         best_model_name = res.sort_values("RMSE").iloc[0]["Model"]
 
-    best_model = models[best_model_name]
+        best_model = models[best_model_name]
 
-    best_model.fit(X_train, y_train)
+        best_model.fit(X_train, y_train)
 
-    st.success(f"Best Model: {best_model_name}")
+        preds = best_model.predict(X_test)
 
-    # ---------------- Download Model ----------------
+        # Evaluation
+        st.subheader("Model Evaluation")
 
+        st.write("RMSE:", np.sqrt(mean_squared_error(y_test, preds)))
+        st.write("MAE:", mean_absolute_error(y_test, preds))
+        st.write("R2 Score:", r2_score(y_test, preds))
+
+    # Model Download
     st.subheader("Download Model")
 
     model_bytes = pickle.dumps(best_model)
@@ -317,14 +304,12 @@ if file:
         file_name="model.pkl"
     )
 
-    # ---------------- Prediction ----------------
-
+    # Prediction
     st.subheader("Prediction")
 
     user_input = {}
 
     for col in X.columns:
-
         user_input[col] = st.number_input(
             f"Enter {col}",
             value=float(X[col].mean())
