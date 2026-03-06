@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import plotly.express as px
+import plotly.graph_objects as go
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
@@ -13,6 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 
 # Regression
@@ -20,33 +22,39 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import SVR
 
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, mean_squared_error, mean_absolute_error, r2_score
+    confusion_matrix, mean_squared_error, mean_absolute_error, r2_score,
+    roc_curve, auc
 )
 
-st.set_page_config(page_title="Fast AutoML Studio", layout="wide")
+st.set_page_config(page_title="AutoML Pro", layout="wide")
 
-st.title("🚀 Fast AutoML Studio")
+st.title("🚀 AutoML Pro Studio")
 
 # ---------------- Upload Dataset ----------------
 
 st.sidebar.header("Upload Dataset")
+
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
 if file:
 
-    df = pd.read_csv(file)
+    if "df" not in st.session_state:
+        st.session_state.df = pd.read_csv(file)
 
-    st.success("Dataset Loaded")
+    df = st.session_state.df
 
-# ---------------- Preview ----------------
+    st.success("Dataset Loaded Successfully")
+
+# ---------------- Dataset Preview ----------------
 
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-# ---------------- Info ----------------
+# ---------------- Dataset Info ----------------
 
     col1, col2 = st.columns(2)
 
@@ -73,52 +81,72 @@ if file:
 
     st.subheader("Preprocessing")
 
+    fill_cols = st.multiselect("Columns for Missing Fill", df.columns)
+
     fill_method = st.selectbox(
-        "Fill Missing Values",
-        ["None","Mean","Median","Mode"]
+        "Fill Method",
+        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
     )
 
-    if fill_method != "None":
+    if st.button("Apply Missing Fill"):
 
-        for col in df.columns:
+        for col in fill_cols:
 
-            if df[col].isnull().sum() > 0:
+            if fill_method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
+                df[col] = df[col].fillna(df[col].mean())
 
-                if fill_method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].fillna(df[col].mean())
+            elif fill_method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
+                df[col] = df[col].fillna(df[col].median())
 
-                elif fill_method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].fillna(df[col].median())
+            elif fill_method == "Mode":
+                df[col] = df[col].fillna(df[col].mode()[0])
 
-                elif fill_method == "Mode":
-                    df[col] = df[col].fillna(df[col].mode()[0])
+            elif fill_method == "Forward Fill":
+                df[col] = df[col].ffill()
+
+            elif fill_method == "Backward Fill":
+                df[col] = df[col].bfill()
+
+        st.session_state.df = df
+
+        st.success("Missing Values Handled")
 
 # ---------------- Encoding ----------------
 
     cat_cols = df.select_dtypes(include="object").columns
 
-    for col in cat_cols:
+    encode_cols = st.multiselect("Categorical Columns", cat_cols)
 
-        df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+    if st.button("Apply Encoding"):
+
+        for col in encode_cols:
+
+            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+
+        st.session_state.df = df
+
+        st.success("Encoding Applied")
 
 # ---------------- Scaling ----------------
 
-    scale_method = st.selectbox(
-        "Scaling",
-        ["None","Standardization","Normalization"]
-    )
-
     num_cols = df.select_dtypes(include=np.number).columns
 
-    if scale_method == "Standardization":
+    scale_cols = st.multiselect("Columns for Scaling", num_cols)
 
-        scaler = StandardScaler()
-        df[num_cols] = scaler.fit_transform(df[num_cols])
+    scale_method = st.selectbox(
+        "Scaling Method",
+        ["Standardization","Normalization"]
+    )
 
-    elif scale_method == "Normalization":
+    if st.button("Apply Scaling"):
 
-        scaler = MinMaxScaler()
-        df[num_cols] = scaler.fit_transform(df[num_cols])
+        scaler = StandardScaler() if scale_method=="Standardization" else MinMaxScaler()
+
+        df[scale_cols] = scaler.fit_transform(df[scale_cols])
+
+        st.session_state.df = df
+
+        st.success("Scaling Applied")
 
 # ---------------- Model Setup ----------------
 
@@ -128,21 +156,14 @@ if file:
 
     task = st.radio("Task Type", ["Classification","Regression"])
 
+    X = df.drop(columns=[target])
+    y = df[target]
+
 # ---------------- Feature Selection ----------------
 
     st.subheader("Feature Selection")
 
-    X = df.drop(columns=[target])
-    X = X.select_dtypes(include=np.number)
-
-    y = df[target]
-
-    data = pd.concat([X,y],axis=1).dropna()
-
-    X = data.drop(columns=[target])
-    y = data[target]
-
-    k = st.slider("Top K Features",1,X.shape[1],min(3,X.shape[1]))
+    k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
 
     selector = SelectKBest(
         f_classif if task=="Classification" else f_regression,
@@ -157,7 +178,7 @@ if file:
 
     st.write("Selected Features:",list(selected_features))
 
-# ---------------- Train Test ----------------
+# ---------------- Train Test Split ----------------
 
     X_train,X_test,y_train,y_test = train_test_split(
         X,y,test_size=0.2,random_state=42
@@ -168,9 +189,10 @@ if file:
     st.subheader("Model Leaderboard")
 
     results = []
+
+    best_score = -999
     best_model = None
     best_model_name = None
-    best_score = None
 
 # ---------------- Classification ----------------
 
@@ -178,19 +200,14 @@ if file:
 
         models = {
 
-            "Logistic Regression": LogisticRegression(max_iter=500),
-
-            "Random Forest": RandomForestClassifier(n_estimators=50),
-
-            "Extra Trees": ExtraTreesClassifier(n_estimators=50),
-
-            "Gradient Boosting": GradientBoostingClassifier(),
-
-            "Decision Tree": DecisionTreeClassifier(),
-
-            "KNN": KNeighborsClassifier(),
-
-            "Naive Bayes": GaussianNB()
+            "Logistic Regression":LogisticRegression(max_iter=1000),
+            "Random Forest":RandomForestClassifier(),
+            "Extra Trees":ExtraTreesClassifier(),
+            "Gradient Boosting":GradientBoostingClassifier(),
+            "Decision Tree":DecisionTreeClassifier(),
+            "KNN":KNeighborsClassifier(),
+            "SVM":SVC(probability=True),
+            "Naive Bayes":GaussianNB()
 
         }
 
@@ -202,12 +219,11 @@ if file:
 
             acc = accuracy_score(y_test,preds)
 
-            cv = cross_val_score(model,X,y,cv=3).mean()
+            cv = cross_val_score(model,X,y,cv=5).mean()
 
             results.append([name,acc,cv])
 
-            if best_score is None or acc > best_score:
-
+            if acc > best_score:
                 best_score = acc
                 best_model = model
                 best_model_name = name
@@ -216,7 +232,9 @@ if file:
 
         st.dataframe(res)
 
-        st.plotly_chart(px.bar(res,x="Model",y="Accuracy"))
+        fig = px.bar(res,x="Model",y="Accuracy",title="Model Comparison")
+
+        st.plotly_chart(fig)
 
 # ---------------- Regression ----------------
 
@@ -224,21 +242,15 @@ if file:
 
         models = {
 
-            "Linear Regression": LinearRegression(),
-
-            "Ridge": Ridge(),
-
-            "Lasso": Lasso(),
-
-            "Random Forest": RandomForestRegressor(n_estimators=50),
-
-            "Extra Trees": ExtraTreesRegressor(n_estimators=50),
-
-            "Gradient Boosting": GradientBoostingRegressor(),
-
-            "Decision Tree": DecisionTreeRegressor(),
-
-            "KNN": KNeighborsRegressor()
+            "Linear Regression":LinearRegression(),
+            "Ridge":Ridge(),
+            "Lasso":Lasso(),
+            "Random Forest":RandomForestRegressor(),
+            "Extra Trees":ExtraTreesRegressor(),
+            "Gradient Boosting":GradientBoostingRegressor(),
+            "Decision Tree":DecisionTreeRegressor(),
+            "KNN":KNeighborsRegressor(),
+            "SVR":SVR()
 
         }
 
@@ -250,13 +262,12 @@ if file:
 
             rmse = np.sqrt(mean_squared_error(y_test,preds))
 
-            cv = cross_val_score(model,X,y,cv=3,
+            cv = cross_val_score(model,X,y,cv=5,
                                  scoring="neg_mean_squared_error").mean()
 
             results.append([name,rmse,cv])
 
-            if best_score is None or rmse < best_score:
-
+            if best_model is None or rmse < best_score:
                 best_score = rmse
                 best_model = model
                 best_model_name = name
@@ -265,47 +276,83 @@ if file:
 
         st.dataframe(res)
 
-        st.plotly_chart(px.bar(res,x="Model",y="RMSE"))
+        fig = px.bar(res,x="Model",y="RMSE",title="Model Comparison")
+
+        st.plotly_chart(fig)
 
 # ---------------- Best Model ----------------
 
-    st.subheader("🏆 Best Model")
+    st.subheader("🥇 Best Model")
 
-    st.success(best_model_name)
+    st.success(f"Best Model Selected: {best_model_name}")
 
     preds = best_model.predict(X_test)
 
 # ---------------- Evaluation ----------------
+
+    st.subheader("Model Evaluation")
 
     if task=="Classification":
 
         st.write("Accuracy:",accuracy_score(y_test,preds))
         st.write("Precision:",precision_score(y_test,preds,average="weighted"))
         st.write("Recall:",recall_score(y_test,preds,average="weighted"))
-        st.write("F1:",f1_score(y_test,preds,average="weighted"))
+        st.write("F1 Score:",f1_score(y_test,preds,average="weighted"))
 
         cm = confusion_matrix(y_test,preds)
 
-        st.plotly_chart(px.imshow(cm,text_auto=True))
+        fig = px.imshow(cm,text_auto=True)
+
+        st.plotly_chart(fig)
+
+# ROC Curve
+
+        if hasattr(best_model,"predict_proba"):
+
+            probs = best_model.predict_proba(X_test)[:,1]
+
+            fpr,tpr,_ = roc_curve(y_test,probs)
+
+            roc_auc = auc(fpr,tpr)
+
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(x=fpr,y=tpr,name="ROC Curve"))
+
+            fig.update_layout(
+                title=f"ROC Curve (AUC={roc_auc:.2f})",
+                xaxis_title="False Positive Rate",
+                yaxis_title="True Positive Rate"
+            )
+
+            st.plotly_chart(fig)
 
     else:
 
         st.write("RMSE:",np.sqrt(mean_squared_error(y_test,preds)))
         st.write("MAE:",mean_absolute_error(y_test,preds))
-        st.write("R2:",r2_score(y_test,preds))
+        st.write("R2 Score:",r2_score(y_test,preds))
 
 # ---------------- Feature Importance ----------------
 
-    if hasattr(best_model,"feature_importances_"):
+    st.subheader("Feature Importance")
 
-        st.subheader("Feature Importance")
+    if hasattr(best_model,"feature_importances_"):
 
         importance = pd.DataFrame({
             "Feature":X.columns,
             "Importance":best_model.feature_importances_
         })
 
-        st.plotly_chart(px.bar(importance,x="Feature",y="Importance"))
+        importance = importance.sort_values(by="Importance",ascending=False)
+
+        fig = px.bar(importance,x="Feature",y="Importance")
+
+        st.plotly_chart(fig)
+
+    else:
+
+        st.info("Feature importance not available")
 
 # ---------------- Download Model ----------------
 
@@ -314,9 +361,9 @@ if file:
     model_bytes = pickle.dumps(best_model)
 
     st.download_button(
-        "Download Model",
-        model_bytes,
-        "best_model.pkl"
+        label="Download Trained Model",
+        data=model_bytes,
+        file_name="best_model.pkl"
     )
 
 # ---------------- Prediction ----------------
@@ -338,7 +385,7 @@ if file:
 
         pred = best_model.predict(input_df)
 
-        st.success(pred[0])
+        st.success(f"Prediction: {pred[0]}")
 
 else:
 
