@@ -9,16 +9,16 @@ from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 
 # Classification Models
-from sklearn.linear_model import LogisticRegression, RidgeClassifier, SGDClassifier, PassiveAggressiveClassifier
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier, BaggingClassifier, HistGradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB, BernoulliNB
+from sklearn.naive_bayes import GaussianNB
 
 # Regression Models
-from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, SGDRegressor
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor, AdaBoostRegressor, BaggingRegressor, HistGradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor, AdaBoostRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
@@ -36,6 +36,7 @@ st.title("🚀 AutoML Pro Studio")
 # ---------------- Upload Dataset ----------------
 
 st.sidebar.header("Upload Dataset")
+
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
 if file:
@@ -52,7 +53,7 @@ if file:
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-    # ---------------- Info ----------------
+    # ---------------- Dataset Info ----------------
 
     st.subheader("Dataset Information")
 
@@ -200,7 +201,6 @@ if file:
     if task == "Classification":
 
         models = {
-
             "Logistic Regression": LogisticRegression(max_iter=1000),
             "Random Forest": RandomForestClassifier(),
             "Extra Trees": ExtraTreesClassifier(),
@@ -209,24 +209,12 @@ if file:
             "Decision Tree": DecisionTreeClassifier(),
             "KNN": KNeighborsClassifier(),
             "SVM": SVC(),
-            "GaussianNB": GaussianNB(),
-            "BernoulliNB": BernoulliNB()
-
+            "GaussianNB": GaussianNB()
         }
 
         for name, model in models.items():
 
-            if tune:
-
-                search = RandomizedSearchCV(model, {}, n_iter=1, cv=3)
-
-                search.fit(X_train, y_train)
-
-                model = search.best_estimator_
-
-            else:
-
-                model.fit(X_train, y_train)
+            model.fit(X_train, y_train)
 
             preds = model.predict(X_test)
 
@@ -246,18 +234,15 @@ if file:
     else:
 
         models = {
-
             "Linear Regression": LinearRegression(),
             "Ridge": Ridge(),
             "Lasso": Lasso(),
-            "ElasticNet": ElasticNet(),
             "Random Forest": RandomForestRegressor(),
             "Extra Trees": ExtraTreesRegressor(),
             "Gradient Boosting": GradientBoostingRegressor(),
             "Decision Tree": DecisionTreeRegressor(),
             "KNN": KNeighborsRegressor(),
             "SVR": SVR()
-
         }
 
         for name, model in models.items():
@@ -309,6 +294,27 @@ if file:
         st.write("RMSE:", np.sqrt(mean_squared_error(y_test, preds)))
         st.write("MAE:", mean_absolute_error(y_test, preds))
         st.write("R2 Score:", r2_score(y_test, preds))
+
+    # ---------------- Feature Importance ----------------
+
+    st.subheader("📊 Feature Importance")
+
+    if hasattr(best_model, "feature_importances_"):
+
+        importance = pd.DataFrame({
+            "Feature": X.columns,
+            "Importance": best_model.feature_importances_
+        })
+
+        importance = importance.sort_values(by="Importance", ascending=False)
+
+        fig = px.bar(importance, x="Feature", y="Importance")
+
+        st.plotly_chart(fig)
+
+    else:
+
+        st.info("Feature importance not available for this model.")
 
     # ---------------- Download Model ----------------
 
