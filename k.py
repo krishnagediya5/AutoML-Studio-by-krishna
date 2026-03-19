@@ -33,11 +33,24 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
+# ---------------- TITLE + HERO SECTION ----------------
+
 st.title("🚀 AutoML Pro Studio")
+
+st.markdown("""
+### 🔥 Build Machine Learning Models in Seconds — No Coding Required
+
+AutoML Pro Studio is an intelligent platform that allows you to upload your dataset, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
+
+👉 No coding. No complexity. Just powerful AI.
+""")
+
+st.markdown("<br>", unsafe_allow_html=True)
+st.divider()
 
 # ---------------- Upload Dataset ----------------
 
-st.sidebar.header("Upload Dataset")
+st.sidebar.header("📂 Upload Dataset")
 
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
@@ -48,11 +61,11 @@ if file:
 
     df = st.session_state.df
 
-    st.success("Dataset Loaded Successfully")
+    st.success("✅ Dataset Loaded Successfully")
 
 # ---------------- Dataset Preview ----------------
 
-    st.subheader("Dataset Preview")
+    st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
 # ---------------- Dataset Info ----------------
@@ -60,10 +73,10 @@ if file:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.write("Shape:", df.shape)
+        st.write("📐 Shape:", df.shape)
 
     with col2:
-        st.write("Missing Values")
+        st.write("❗ Missing Values")
         st.write(df.isnull().sum())
 
 # ---------------- EDA ----------------
@@ -72,7 +85,7 @@ if file:
 
     if len(numeric_cols) > 0:
 
-        col = st.selectbox("Distribution Column", numeric_cols)
+        col = st.selectbox("📈 Distribution Column", numeric_cols)
 
         fig = px.histogram(df, x=col)
 
@@ -80,7 +93,7 @@ if file:
 
 # ---------------- Preprocessing ----------------
 
-    st.subheader("Preprocessing")
+    st.subheader("🧹 Preprocessing")
 
     fill_cols = st.multiselect("Columns for Missing Fill", df.columns)
 
@@ -109,7 +122,7 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-        st.success("Missing Values Handled")
+        st.success("✅ Missing Values Handled")
 
 # ---------------- Encoding ----------------
 
@@ -123,7 +136,7 @@ if file:
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
         st.session_state.df = df
-        st.success("Encoding Applied")
+        st.success("✅ Encoding Applied")
 
 # ---------------- Scaling ----------------
 
@@ -143,15 +156,14 @@ if file:
         df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
         st.session_state.df = df
-        st.success("Scaling Applied")
+        st.success("✅ Scaling Applied")
 
 # ---------------- Model Setup ----------------
 
-    st.subheader("Model Setup")
+    st.subheader("⚙️ Model Setup")
 
     target = st.selectbox("Target Column", df.columns)
 
-    # ✅ FIX: remove missing target values
     df = df.dropna(subset=[target])
 
     X = df.drop(columns=[target])
@@ -159,23 +171,22 @@ if file:
 
 # ---------------- AUTO TASK DETECTION ----------------
 
-    target_type = type_of_target(y)   # ✅ FIX
+    target_type = type_of_target(y)
 
     if target_type in ["binary", "multiclass"]:
         task = "Classification"
     else:
         task = "Regression"
 
-    st.write("Detected Task:", task)
+    st.write("🎯 Detected Task:", task)
 
-    # ✅ FIX: prevent crash
     if task == "Classification" and type_of_target(y) == "continuous":
-        st.error("❌ Continuous target cannot be used for classification. Please choose a categorical target.")
+        st.error("❌ Continuous target cannot be used for classification.")
         st.stop()
 
 # ---------------- Feature Selection ----------------
 
-    st.subheader("Feature Selection")
+    st.subheader("🎯 Feature Selection")
 
     k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
 
@@ -200,7 +211,7 @@ if file:
 
 # ---------------- Models ----------------
 
-    st.subheader("Model Leaderboard")
+    st.subheader("🏆 Model Leaderboard")
 
     results = []
 
@@ -307,7 +318,7 @@ if file:
 
 # ---------------- Evaluation ----------------
 
-    st.subheader("Model Evaluation")
+    st.subheader("📊 Model Evaluation")
 
     if task=="Classification":
 
@@ -350,7 +361,7 @@ if file:
 
 # ---------------- Feature Importance ----------------
 
-    st.subheader("Feature Importance")
+    st.subheader("📊 Feature Importance")
 
     if hasattr(best_model,"feature_importances_"):
 
@@ -371,7 +382,7 @@ if file:
 
 # ---------------- Download Model ----------------
 
-    st.subheader("Download Model")
+    st.subheader("📥 Download Model")
 
     model_bytes = pickle.dumps(best_model)
 
@@ -383,7 +394,7 @@ if file:
 
 # ---------------- Prediction ----------------
 
-    st.subheader("Prediction")
+    st.subheader("🔮 Prediction")
 
     user_input = {}
 
@@ -404,4 +415,8 @@ if file:
 
 else:
 
-    st.info("Upload dataset to start AutoML")
+    st.markdown("""
+    <div style="background-color:#E8F0FE;padding:20px;border-radius:10px;text-align:center">
+    <h4>📂 Upload your dataset to begin building powerful ML models instantly 🚀</h4>
+    </div>
+    """, unsafe_allow_html=True)
