@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.utils.multiclass import type_of_target   # ✅ ADDED
 
 # Classification
 from sklearn.linear_model import LogisticRegression
@@ -150,17 +151,27 @@ if file:
 
     target = st.selectbox("Target Column", df.columns)
 
+    # ✅ FIX: remove missing target values
+    df = df.dropna(subset=[target])
+
     X = df.drop(columns=[target])
     y = df[target]
 
 # ---------------- AUTO TASK DETECTION ----------------
 
-    if y.dtype == "object" or len(y.unique()) <= 10:
+    target_type = type_of_target(y)   # ✅ FIX
+
+    if target_type in ["binary", "multiclass"]:
         task = "Classification"
     else:
         task = "Regression"
 
     st.write("Detected Task:", task)
+
+    # ✅ FIX: prevent crash
+    if task == "Classification" and type_of_target(y) == "continuous":
+        st.error("❌ Continuous target cannot be used for classification. Please choose a categorical target.")
+        st.stop()
 
 # ---------------- Feature Selection ----------------
 
@@ -311,8 +322,6 @@ if file:
 
         st.plotly_chart(fig)
 
-# ROC Curve only if binary
-
         if hasattr(best_model,"predict_proba") and len(np.unique(y_test))==2:
 
             probs = best_model.predict_proba(X_test)[:,1]
@@ -396,4 +405,3 @@ if file:
 else:
 
     st.info("Upload dataset to start AutoML")
-    
