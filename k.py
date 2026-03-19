@@ -33,24 +33,34 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ---------------- TITLE + HERO SECTION ----------------
-
-st.title("🚀 AutoML Pro Studio")
+# ---------------- PREMIUM HERO ----------------
 
 st.markdown("""
-### 🔥 Build Machine Learning Models in Seconds — No Coding Required
+<div style="
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 30px;
+    border-radius: 15px;
+    color: white;
+">
 
-AutoML Pro Studio is an intelligent platform that allows you to upload your dataset, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
+<h1>🚀 AutoML Pro Studio</h1>
 
-👉 No coding. No complexity. Just powerful AI.
-""")
+<h3>🔥 Build Machine Learning Models in Seconds</h3>
+
+<p>
+AutoML Pro Studio is an intelligent platform that lets you upload datasets, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
+</p>
+
+<p>👉 No coding. No complexity. Just powerful AI.</p>
+
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-st.divider()
 
 # ---------------- Upload Dataset ----------------
 
-st.sidebar.header("📂 Upload Dataset")
+st.sidebar.markdown("## 📂 Upload Dataset")
 
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
@@ -416,7 +426,14 @@ if file:
 else:
 
     st.markdown("""
-    <div style="background-color:#E8F0FE;padding:20px;border-radius:10px;text-align:center">
-    <h4>📂 Upload your dataset to begin building powerful ML models instantly 🚀</h4>
+    <div style="
+        background: linear-gradient(135deg, #f6d365, #fda085);
+        padding: 25px;
+        border-radius: 12px;
+        text-align:center;
+        font-size:18px;
+        font-weight:600;
+    ">
+    📂 Upload your dataset to start building powerful ML models 🚀
     </div>
     """, unsafe_allow_html=True)
