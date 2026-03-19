@@ -33,7 +33,7 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ---------------- PREMIUM HERO ----------------
+# ---------------- HERO SECTION (FIXED BRANDING) ----------------
 
 st.markdown("""
 <div style="
@@ -43,12 +43,12 @@ st.markdown("""
     color: white;
 ">
 
-<h1>🚀 AutoML Pro Studio</h1>
+<h1>🚀 AutoML Studio</h1>
 
 <h3>🔥 Build Machine Learning Models in Seconds</h3>
 
 <p>
-AutoML Pro Studio is an intelligent platform that lets you upload datasets, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
+AutoML Studio is an intelligent platform that lets you upload datasets, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
 </p>
 
 <p>👉 No coding. No complexity. Just powerful AI.</p>
