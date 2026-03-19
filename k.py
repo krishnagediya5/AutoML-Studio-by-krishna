@@ -30,30 +30,26 @@ from sklearn.metrics import *
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ---------------- GLASS UI ----------------
+# ---------------- UI STYLE ----------------
 st.markdown("""
 <style>
 .stApp {
     background: linear-gradient(135deg, #0f172a, #1e293b);
     color: white;
 }
-
 .hero {
     background: linear-gradient(135deg, rgba(102,126,234,0.6), rgba(118,75,162,0.6));
     backdrop-filter: blur(20px);
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    animation: fadeIn 0.8s ease-in-out;
 }
-
 .card {
     background: rgba(255,255,255,0.05);
     padding: 20px;
     border-radius: 15px;
     text-align:center;
 }
-
 .upload-box {
     background: linear-gradient(135deg, #f6d365, #fda085);
     padding: 20px;
@@ -61,12 +57,6 @@ st.markdown("""
     text-align:center;
     font-size:18px;
     font-weight:600;
-    box-shadow: 0px 6px 25px rgba(0,0,0,0.3);
-}
-
-@keyframes fadeIn {
-    from {opacity: 0; transform: translateY(25px);}
-    to {opacity: 1; transform: translateY(0);}
 }
 </style>
 """, unsafe_allow_html=True)
@@ -84,10 +74,10 @@ st.markdown("""
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ---------------- CARDS ----------------
-col1, col2, col3 = st.columns(3)
-col1.markdown('<div class="card">⚡ Instant Speed</div>', unsafe_allow_html=True)
-col2.markdown('<div class="card">🤖 Multiple Models</div>', unsafe_allow_html=True)
-col3.markdown('<div class="card">📊 Optimized Results</div>', unsafe_allow_html=True)
+c1,c2,c3 = st.columns(3)
+c1.markdown('<div class="card">⚡ Instant</div>', unsafe_allow_html=True)
+c2.markdown('<div class="card">🤖 Models</div>', unsafe_allow_html=True)
+c3.markdown('<div class="card">📊 Results</div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -111,8 +101,10 @@ if file:
 
 # ---------------- INFO ----------------
     col1, col2 = st.columns(2)
-    col1.write("📐 Shape:", df.shape)
-    col2.write(df.isnull().sum())
+
+    col1.write(f"📐 Shape: {df.shape}")   # ✅ FIXED
+    col2.write("❗ Missing Values")
+    col2.dataframe(df.isnull().sum().to_frame("Count"))  # ✅ FIXED
 
 # ---------------- EDA ----------------
     num_cols = df.select_dtypes(include=np.number).columns
@@ -154,7 +146,7 @@ if file:
     X = pd.DataFrame(StandardScaler().fit_transform(X), columns=X.columns)
 
     task = "Classification" if type_of_target(y) in ["binary","multiclass"] else "Regression"
-    st.write("🎯 Task:", task)
+    st.write(f"🎯 Task: {task}")
 
     X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
 
