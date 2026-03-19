@@ -1,10 +1,10 @@
 
 
-# 🚀 **ModelForge AI**
+# 🚀 **AutoML Studio**
 
 ### 🔥 Intelligent AutoML Platform for End-to-End Machine Learning
 
-**ModelForge AI** is a fully automated machine learning platform designed to simplify and accelerate the complete ML workflow. Built using Streamlit and Scikit-learn, it enables users to seamlessly transform raw data into high-performing predictive models through an intuitive, no-code interface.
+**AutoML Studio** is a fully automated machine learning platform designed to simplify and accelerate the complete ML workflow. Built using Streamlit and Scikit-learn, it enables users to seamlessly transform raw data into high-performing predictive models through an intuitive, no-code interface.
 
 The platform integrates data preprocessing, feature engineering, model training, evaluation, and deployment into a single unified dashboard — making machine learning accessible to both beginners and professionals.
 
@@ -57,8 +57,3 @@ The platform integrates data preprocessing, feature engineering, model training,
 **Krishna Gediya**
 
 
-* 🔥 Resume bullet points (very important for placement)
-* 💼 LinkedIn post to showcase this project
-* 🌐 Portfolio website section
-
-Just say 👉 **“resume”** or **“linkedin post”** 👍
