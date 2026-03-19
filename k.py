@@ -33,37 +33,87 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ---------------- HERO SECTION (FIXED BRANDING) ----------------
-
+# ---------------- GLOBAL UI ----------------
 st.markdown("""
-<div style="
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    padding: 30px;
-    border-radius: 15px;
-    color: white;
-">
+<style>
 
-<h1>🚀 AutoML Studio</h1>
+/* Background */
+.stApp {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+}
+
+/* Hero */
+.hero {
+    background: linear-gradient(135deg, rgba(102,126,234,0.6), rgba(118,75,162,0.6));
+    backdrop-filter: blur(20px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Cards */
+.card {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 15px;
+    text-align:center;
+}
+
+/* Upload box */
+.upload-box {
+    background: linear-gradient(135deg, #f6d365, #fda085);
+    padding: 20px;
+    border-radius: 15px;
+    text-align:center;
+    font-size:18px;
+    font-weight:600;
+    box-shadow: 0px 6px 25px rgba(0,0,0,0.3);
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(25px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- HERO ----------------
+st.markdown("""
+<div class="hero">
+
+<h1 style="font-size:42px;">🚀 AutoML Studio</h1>
 
 <h3>🔥 Build Machine Learning Models in Seconds</h3>
 
-<p>
+<p style="font-size:17px;">
 AutoML Studio is an intelligent platform that lets you upload datasets, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
 </p>
 
-<p>👉 No coding. No complexity. Just powerful AI.</p>
+<p>👉 No coding • No complexity • Just powerful AI</p>
 
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ---------------- Upload Dataset ----------------
+# ---------------- CARDS ----------------
+col1, col2, col3 = st.columns(3)
 
+col1.markdown('<div class="card">⚡ Instant Speed</div>', unsafe_allow_html=True)
+col2.markdown('<div class="card">🤖 Multiple Models</div>', unsafe_allow_html=True)
+col3.markdown('<div class="card">📊 Optimized Results</div>', unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ---------------- SIDEBAR ----------------
 st.sidebar.markdown("## 📂 Upload Dataset")
-
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
+# ---------------- MAIN ----------------
 if file:
 
     if "df" not in st.session_state:
@@ -74,12 +124,10 @@ if file:
     st.success("✅ Dataset Loaded Successfully")
 
 # ---------------- Dataset Preview ----------------
-
     st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
 # ---------------- Dataset Info ----------------
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -90,19 +138,14 @@ if file:
         st.write(df.isnull().sum())
 
 # ---------------- EDA ----------------
-
     numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
-
         col = st.selectbox("📈 Distribution Column", numeric_cols)
-
         fig = px.histogram(df, x=col)
-
         st.plotly_chart(fig)
 
 # ---------------- Preprocessing ----------------
-
     st.subheader("🧹 Preprocessing")
 
     fill_cols = st.multiselect("Columns for Missing Fill", df.columns)
@@ -135,7 +178,6 @@ if file:
         st.success("✅ Missing Values Handled")
 
 # ---------------- Encoding ----------------
-
     cat_cols = df.select_dtypes(include="object").columns
 
     encode_cols = st.multiselect("Categorical Columns", cat_cols)
@@ -149,7 +191,6 @@ if file:
         st.success("✅ Encoding Applied")
 
 # ---------------- Scaling ----------------
-
     num_cols = df.select_dtypes(include=np.number).columns
 
     scale_cols = st.multiselect("Columns for Scaling", num_cols)
@@ -169,7 +210,6 @@ if file:
         st.success("✅ Scaling Applied")
 
 # ---------------- Model Setup ----------------
-
     st.subheader("⚙️ Model Setup")
 
     target = st.selectbox("Target Column", df.columns)
@@ -180,7 +220,6 @@ if file:
     y = df[target]
 
 # ---------------- AUTO TASK DETECTION ----------------
-
     target_type = type_of_target(y)
 
     if target_type in ["binary", "multiclass"]:
@@ -195,7 +234,6 @@ if file:
         st.stop()
 
 # ---------------- Feature Selection ----------------
-
     st.subheader("🎯 Feature Selection")
 
     k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
@@ -214,28 +252,23 @@ if file:
     st.write("Selected Features:",list(selected_features))
 
 # ---------------- Train Test Split ----------------
-
     X_train,X_test,y_train,y_test = train_test_split(
         X,y,test_size=0.2,random_state=42
     )
 
 # ---------------- Models ----------------
-
     st.subheader("🏆 Model Leaderboard")
 
     results = []
-
     best_model = None
     best_model_name = None
 
 # ---------------- Classification ----------------
-
     if task=="Classification":
 
         best_score = 0
 
         models = {
-
             "Logistic Regression":LogisticRegression(max_iter=1000),
             "Random Forest":RandomForestClassifier(),
             "Extra Trees":ExtraTreesClassifier(),
@@ -244,17 +277,14 @@ if file:
             "KNN":KNeighborsClassifier(),
             "SVM":SVC(probability=True),
             "Naive Bayes":GaussianNB()
-
         }
 
         for name,model in models.items():
 
             model.fit(X_train,y_train)
-
             preds = model.predict(X_test)
 
             acc = accuracy_score(y_test,preds)
-
             cv = cross_val_score(model,X,y,cv=5).mean()
 
             results.append([name,acc,cv])
@@ -267,19 +297,14 @@ if file:
         res = pd.DataFrame(results,columns=["Model","Accuracy","CV Score"])
 
         st.dataframe(res)
-
-        fig = px.bar(res,x="Model",y="Accuracy",title="Model Comparison")
-
-        st.plotly_chart(fig)
+        st.plotly_chart(px.bar(res,x="Model",y="Accuracy"))
 
 # ---------------- Regression ----------------
-
     else:
 
         best_score = float("inf")
 
         models = {
-
             "Linear Regression":LinearRegression(),
             "Ridge":Ridge(),
             "Lasso":Lasso(),
@@ -289,17 +314,14 @@ if file:
             "Decision Tree":DecisionTreeRegressor(),
             "KNN":KNeighborsRegressor(),
             "SVR":SVR()
-
         }
 
         for name,model in models.items():
 
             model.fit(X_train,y_train)
-
             preds = model.predict(X_test)
 
             rmse = np.sqrt(mean_squared_error(y_test,preds))
-
             cv = cross_val_score(model,X,y,cv=5,
                                  scoring="neg_mean_squared_error").mean()
 
@@ -313,64 +335,32 @@ if file:
         res = pd.DataFrame(results,columns=["Model","RMSE","CV Score"])
 
         st.dataframe(res)
-
-        fig = px.bar(res,x="Model",y="RMSE",title="Model Comparison")
-
-        st.plotly_chart(fig)
+        st.plotly_chart(px.bar(res,x="Model",y="RMSE"))
 
 # ---------------- Best Model ----------------
-
     st.subheader("🥇 Best Model")
-
     st.success(f"Best Model Selected: {best_model_name}")
 
     preds = best_model.predict(X_test)
 
 # ---------------- Evaluation ----------------
-
     st.subheader("📊 Model Evaluation")
 
     if task=="Classification":
-
         st.write("Accuracy:",accuracy_score(y_test,preds))
         st.write("Precision:",precision_score(y_test,preds,average="weighted",zero_division=0))
         st.write("Recall:",recall_score(y_test,preds,average="weighted",zero_division=0))
         st.write("F1 Score:",f1_score(y_test,preds,average="weighted",zero_division=0))
 
         cm = confusion_matrix(y_test,preds)
-
-        fig = px.imshow(cm,text_auto=True)
-
-        st.plotly_chart(fig)
-
-        if hasattr(best_model,"predict_proba") and len(np.unique(y_test))==2:
-
-            probs = best_model.predict_proba(X_test)[:,1]
-
-            fpr,tpr,_ = roc_curve(y_test,probs)
-
-            roc_auc = auc(fpr,tpr)
-
-            fig = go.Figure()
-
-            fig.add_trace(go.Scatter(x=fpr,y=tpr,name="ROC Curve"))
-
-            fig.update_layout(
-                title=f"ROC Curve (AUC={roc_auc:.2f})",
-                xaxis_title="False Positive Rate",
-                yaxis_title="True Positive Rate"
-            )
-
-            st.plotly_chart(fig)
+        st.plotly_chart(px.imshow(cm,text_auto=True))
 
     else:
-
         st.write("RMSE:",np.sqrt(mean_squared_error(y_test,preds)))
         st.write("MAE:",mean_absolute_error(y_test,preds))
         st.write("R2 Score:",r2_score(y_test,preds))
 
 # ---------------- Feature Importance ----------------
-
     st.subheader("📊 Feature Importance")
 
     if hasattr(best_model,"feature_importances_"):
@@ -382,16 +372,12 @@ if file:
 
         importance = importance.sort_values(by="Importance",ascending=False)
 
-        fig = px.bar(importance,x="Feature",y="Importance")
-
-        st.plotly_chart(fig)
+        st.plotly_chart(px.bar(importance,x="Feature",y="Importance"))
 
     else:
-
         st.info("Feature importance not available")
 
-# ---------------- Download Model ----------------
-
+# ---------------- Download ----------------
     st.subheader("📥 Download Model")
 
     model_bytes = pickle.dumps(best_model)
@@ -403,37 +389,23 @@ if file:
     )
 
 # ---------------- Prediction ----------------
-
     st.subheader("🔮 Prediction")
 
     user_input = {}
 
     for col in X.columns:
-
-        user_input[col] = st.number_input(
-            f"Enter {col}",
-            value=float(X[col].mean())
-        )
+        user_input[col] = st.number_input(col, value=float(X[col].mean()))
 
     input_df = pd.DataFrame([user_input])
 
     if st.button("Predict"):
-
         pred = best_model.predict(input_df)
-
         st.success(f"Prediction: {pred[0]}")
 
 else:
 
     st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, #f6d365, #fda085);
-        padding: 25px;
-        border-radius: 12px;
-        text-align:center;
-        font-size:18px;
-        font-weight:600;
-    ">
+    <div class="upload-box">
     📂 Upload your dataset to start building powerful ML models 🚀
     </div>
     """, unsafe_allow_html=True)
