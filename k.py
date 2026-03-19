@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.utils.multiclass import type_of_target   # ✅ ADDED
+from sklearn.utils.multiclass import type_of_target   
 
 # Classification
 from sklearn.linear_model import LogisticRegression
@@ -31,7 +31,7 @@ from sklearn.metrics import (
     roc_curve, auc
 )
 
-st.set_page_config(page_title="AutoML Pro", layout="wide")
+st.set_page_config(page_title="AutoML Studio", layout="wide")
 
 st.title("🚀 AutoML Pro Studio")
 
