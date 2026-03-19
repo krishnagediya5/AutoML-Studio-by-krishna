@@ -33,28 +33,38 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ---------------- HERO SECTION (FIXED BRANDING) ----------------
+# ---------------- PREMIUM HERO ----------------
 
 st.markdown("""
 <div style="
     background: linear-gradient(135deg, #667eea, #764ba2);
-    padding: 30px;
-    border-radius: 15px;
+    padding: 40px;
+    border-radius: 20px;
     color: white;
+    box-shadow: 0px 10px 30px rgba(0,0,0,0.3);
 ">
 
-<h1>🚀 AutoML Studio</h1>
+<h1 style="font-size:42px;">🚀 AutoML Studio</h1>
 
 <h3>🔥 Build Machine Learning Models in Seconds</h3>
 
-<p>
-AutoML Studio is an intelligent platform that lets you upload datasets, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
+<p style="font-size:17px;">
+AutoML Studio is a powerful no-code platform that lets you upload datasets, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
 </p>
 
-<p>👉 No coding. No complexity. Just powerful AI.</p>
+<p>👉 No coding • No complexity • Just powerful AI</p>
 
 </div>
 """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ---------------- STATS CARDS ----------------
+col1, col2, col3 = st.columns(3)
+
+col1.metric("⚡ Speed", "Instant")
+col2.metric("🤖 Models", "8+")
+col3.metric("📊 Accuracy", "Optimized")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -268,7 +278,7 @@ if file:
 
         st.dataframe(res)
 
-        fig = px.bar(res,x="Model",y="Accuracy",title="Model Comparison")
+        fig = px.bar(res,x="Model",y="Accuracy")
 
         st.plotly_chart(fig)
 
@@ -314,7 +324,7 @@ if file:
 
         st.dataframe(res)
 
-        fig = px.bar(res,x="Model",y="RMSE",title="Model Comparison")
+        fig = px.bar(res,x="Model",y="RMSE")
 
         st.plotly_chart(fig)
 
@@ -342,26 +352,6 @@ if file:
         fig = px.imshow(cm,text_auto=True)
 
         st.plotly_chart(fig)
-
-        if hasattr(best_model,"predict_proba") and len(np.unique(y_test))==2:
-
-            probs = best_model.predict_proba(X_test)[:,1]
-
-            fpr,tpr,_ = roc_curve(y_test,probs)
-
-            roc_auc = auc(fpr,tpr)
-
-            fig = go.Figure()
-
-            fig.add_trace(go.Scatter(x=fpr,y=tpr,name="ROC Curve"))
-
-            fig.update_layout(
-                title=f"ROC Curve (AUC={roc_auc:.2f})",
-                xaxis_title="False Positive Rate",
-                yaxis_title="True Positive Rate"
-            )
-
-            st.plotly_chart(fig)
 
     else:
 
@@ -433,6 +423,7 @@ else:
         text-align:center;
         font-size:18px;
         font-weight:600;
+        box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
     ">
     📂 Upload your dataset to start building powerful ML models 🚀
     </div>
