@@ -10,430 +10,144 @@ from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.utils.multiclass import type_of_target   
 
-# Classification
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.svm import SVC, SVR
 from sklearn.naive_bayes import GaussianNB
 
-# Regression
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.svm import SVR
-
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, mean_squared_error, mean_absolute_error, r2_score,
-    roc_curve, auc
-)
+from sklearn.metrics import *
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ---------------- HERO SECTION (FIXED BRANDING) ----------------
-
+# ---------------- HERO ----------------
 st.markdown("""
-<div style="
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    padding: 30px;
-    border-radius: 15px;
-    color: white;
-">
-
+<div style="background: linear-gradient(135deg,#667eea,#764ba2);
+padding:30px;border-radius:15px;color:white">
 <h1>🚀 AutoML Studio</h1>
-
-<h3>🔥 Build Machine Learning Models in Seconds</h3>
-
-<p>
-AutoML Studio is an intelligent platform that lets you upload datasets, preprocess data, train multiple machine learning models, and generate accurate predictions — all in one place.
-</p>
-
-<p>👉 No coding. No complexity. Just powerful AI.</p>
-
+<p>End-to-End Machine Learning Platform — Build, Train & Predict Instantly</p>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ---------------- Upload Dataset ----------------
-
-st.sidebar.markdown("## 📂 Upload Dataset")
+# ---------------- SIDEBAR ----------------
+st.sidebar.title("⚙️ Navigation")
+page = st.sidebar.radio("Go to", ["📂 Upload","📊 EDA","🧹 Preprocessing","🤖 Model","🔮 Prediction"])
 
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
+# ---------------- LOAD ----------------
 if file:
-
     if "df" not in st.session_state:
         st.session_state.df = pd.read_csv(file)
 
     df = st.session_state.df
 
-    st.success("✅ Dataset Loaded Successfully")
+# ---------------- DASHBOARD CARDS ----------------
+    st.markdown("### 📊 Dashboard Overview")
 
-# ---------------- Dataset Preview ----------------
+    c1,c2,c3 = st.columns(3)
+    c1.metric("Rows", df.shape[0])
+    c2.metric("Columns", df.shape[1])
+    c3.metric("Missing Values", df.isnull().sum().sum())
 
-    st.subheader("📊 Dataset Preview")
-    st.dataframe(df.head())
-
-# ---------------- Dataset Info ----------------
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.write("📐 Shape:", df.shape)
-
-    with col2:
-        st.write("❗ Missing Values")
-        st.write(df.isnull().sum())
+# ---------------- UPLOAD ----------------
+    if page == "📂 Upload":
+        st.subheader("📂 Dataset")
+        st.dataframe(df.head())
 
 # ---------------- EDA ----------------
+    if page == "📊 EDA":
+        st.subheader("📊 Data Visualization")
 
-    numeric_cols = df.select_dtypes(include=np.number).columns
+        num_cols = df.select_dtypes(include=np.number).columns
+        col = st.selectbox("Select Feature", num_cols)
 
-    if len(numeric_cols) > 0:
+        fig1 = px.histogram(df, x=col)
+        fig2 = px.box(df, y=col)
 
-        col = st.selectbox("📈 Distribution Column", numeric_cols)
+        c1,c2 = st.columns(2)
+        c1.plotly_chart(fig1, use_container_width=True)
+        c2.plotly_chart(fig2, use_container_width=True)
 
-        fig = px.histogram(df, x=col)
+# ---------------- PREPROCESSING ----------------
+    if page == "🧹 Preprocessing":
 
-        st.plotly_chart(fig)
+        st.subheader("🧹 Data Cleaning")
 
-# ---------------- Preprocessing ----------------
+        cols = st.multiselect("Columns", df.columns)
+        method = st.selectbox("Method", ["Mean","Median","Mode"])
 
-    st.subheader("🧹 Preprocessing")
+        if st.button("Apply Cleaning"):
+            for col in cols:
+                if method=="Mean":
+                    df[col]=df[col].fillna(df[col].mean())
+                elif method=="Median":
+                    df[col]=df[col].fillna(df[col].median())
+                else:
+                    df[col]=df[col].fillna(df[col].mode()[0])
 
-    fill_cols = st.multiselect("Columns for Missing Fill", df.columns)
+            st.session_state.df=df
+            st.success("Preprocessing Done ✅")
 
-    fill_method = st.selectbox(
-        "Fill Method",
-        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
-    )
+# ---------------- MODEL ----------------
+    if page == "🤖 Model":
 
-    if st.button("Apply Missing Fill"):
+        st.subheader("🤖 Model Training")
 
-        for col in fill_cols:
+        target = st.selectbox("Target Column", df.columns)
 
-            if fill_method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
-                df[col] = df[col].fillna(df[col].mean())
+        df = df.dropna(subset=[target])
+        X = df.drop(columns=[target])
+        y = df[target]
 
-            elif fill_method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
-                df[col] = df[col].fillna(df[col].median())
+        # encoding
+        for col in X.select_dtypes(include="object"):
+            X[col] = LabelEncoder().fit_transform(X[col])
 
-            elif fill_method == "Mode":
-                df[col] = df[col].fillna(df[col].mode()[0])
+        # scaling
+        scaler = StandardScaler()
+        X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
-            elif fill_method == "Forward Fill":
-                df[col] = df[col].ffill()
+        task = "Classification" if type_of_target(y) in ["binary","multiclass"] else "Regression"
 
-            elif fill_method == "Backward Fill":
-                df[col] = df[col].bfill()
+        st.success(f"Detected Task: {task}")
 
-        st.session_state.df = df
-        st.success("✅ Missing Values Handled")
+        X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
 
-# ---------------- Encoding ----------------
+        results=[]
 
-    cat_cols = df.select_dtypes(include="object").columns
+        if task=="Classification":
+            models={
+                "Logistic":LogisticRegression(max_iter=1000),
+                "RandomForest":RandomForestClassifier(),
+                "KNN":KNeighborsClassifier()
+            }
 
-    encode_cols = st.multiselect("Categorical Columns", cat_cols)
+            for name,m in models.items():
+                m.fit(X_train,y_train)
+                acc=accuracy_score(y_test,m.predict(X_test))
+                results.append([name,acc])
 
-    if st.button("Apply Encoding"):
+            res=pd.DataFrame(results,columns=["Model","Accuracy"])
+            st.dataframe(res)
 
-        for col in encode_cols:
-            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+            st.plotly_chart(px.bar(res,x="Model",y="Accuracy"))
 
-        st.session_state.df = df
-        st.success("✅ Encoding Applied")
+# ---------------- PREDICTION ----------------
+    if page == "🔮 Prediction":
 
-# ---------------- Scaling ----------------
+        st.subheader("🔮 Prediction")
 
-    num_cols = df.select_dtypes(include=np.number).columns
-
-    scale_cols = st.multiselect("Columns for Scaling", num_cols)
-
-    scale_method = st.selectbox(
-        "Scaling Method",
-        ["Standardization","Normalization"]
-    )
-
-    if st.button("Apply Scaling"):
-
-        scaler = StandardScaler() if scale_method=="Standardization" else MinMaxScaler()
-
-        df[scale_cols] = scaler.fit_transform(df[scale_cols])
-
-        st.session_state.df = df
-        st.success("✅ Scaling Applied")
-
-# ---------------- Model Setup ----------------
-
-    st.subheader("⚙️ Model Setup")
-
-    target = st.selectbox("Target Column", df.columns)
-
-    df = df.dropna(subset=[target])
-
-    X = df.drop(columns=[target])
-    y = df[target]
-
-# ---------------- AUTO TASK DETECTION ----------------
-
-    target_type = type_of_target(y)
-
-    if target_type in ["binary", "multiclass"]:
-        task = "Classification"
-    else:
-        task = "Regression"
-
-    st.write("🎯 Detected Task:", task)
-
-    if task == "Classification" and type_of_target(y) == "continuous":
-        st.error("❌ Continuous target cannot be used for classification.")
-        st.stop()
-
-# ---------------- Feature Selection ----------------
-
-    st.subheader("🎯 Feature Selection")
-
-    k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
-
-    selector = SelectKBest(
-        f_classif if task=="Classification" else f_regression,
-        k=k
-    )
-
-    X_new = selector.fit_transform(X,y)
-
-    selected_features = X.columns[selector.get_support()]
-
-    X = pd.DataFrame(X_new,columns=selected_features)
-
-    st.write("Selected Features:",list(selected_features))
-
-# ---------------- Train Test Split ----------------
-
-    X_train,X_test,y_train,y_test = train_test_split(
-        X,y,test_size=0.2,random_state=42
-    )
-
-# ---------------- Models ----------------
-
-    st.subheader("🏆 Model Leaderboard")
-
-    results = []
-
-    best_model = None
-    best_model_name = None
-
-# ---------------- Classification ----------------
-
-    if task=="Classification":
-
-        best_score = 0
-
-        models = {
-
-            "Logistic Regression":LogisticRegression(max_iter=1000),
-            "Random Forest":RandomForestClassifier(),
-            "Extra Trees":ExtraTreesClassifier(),
-            "Gradient Boosting":GradientBoostingClassifier(),
-            "Decision Tree":DecisionTreeClassifier(),
-            "KNN":KNeighborsClassifier(),
-            "SVM":SVC(probability=True),
-            "Naive Bayes":GaussianNB()
-
-        }
-
-        for name,model in models.items():
-
-            model.fit(X_train,y_train)
-
-            preds = model.predict(X_test)
-
-            acc = accuracy_score(y_test,preds)
-
-            cv = cross_val_score(model,X,y,cv=5).mean()
-
-            results.append([name,acc,cv])
-
-            if acc > best_score:
-                best_score = acc
-                best_model = model
-                best_model_name = name
-
-        res = pd.DataFrame(results,columns=["Model","Accuracy","CV Score"])
-
-        st.dataframe(res)
-
-        fig = px.bar(res,x="Model",y="Accuracy",title="Model Comparison")
-
-        st.plotly_chart(fig)
-
-# ---------------- Regression ----------------
-
-    else:
-
-        best_score = float("inf")
-
-        models = {
-
-            "Linear Regression":LinearRegression(),
-            "Ridge":Ridge(),
-            "Lasso":Lasso(),
-            "Random Forest":RandomForestRegressor(),
-            "Extra Trees":ExtraTreesRegressor(),
-            "Gradient Boosting":GradientBoostingRegressor(),
-            "Decision Tree":DecisionTreeRegressor(),
-            "KNN":KNeighborsRegressor(),
-            "SVR":SVR()
-
-        }
-
-        for name,model in models.items():
-
-            model.fit(X_train,y_train)
-
-            preds = model.predict(X_test)
-
-            rmse = np.sqrt(mean_squared_error(y_test,preds))
-
-            cv = cross_val_score(model,X,y,cv=5,
-                                 scoring="neg_mean_squared_error").mean()
-
-            results.append([name,rmse,cv])
-
-            if rmse < best_score:
-                best_score = rmse
-                best_model = model
-                best_model_name = name
-
-        res = pd.DataFrame(results,columns=["Model","RMSE","CV Score"])
-
-        st.dataframe(res)
-
-        fig = px.bar(res,x="Model",y="RMSE",title="Model Comparison")
-
-        st.plotly_chart(fig)
-
-# ---------------- Best Model ----------------
-
-    st.subheader("🥇 Best Model")
-
-    st.success(f"Best Model Selected: {best_model_name}")
-
-    preds = best_model.predict(X_test)
-
-# ---------------- Evaluation ----------------
-
-    st.subheader("📊 Model Evaluation")
-
-    if task=="Classification":
-
-        st.write("Accuracy:",accuracy_score(y_test,preds))
-        st.write("Precision:",precision_score(y_test,preds,average="weighted",zero_division=0))
-        st.write("Recall:",recall_score(y_test,preds,average="weighted",zero_division=0))
-        st.write("F1 Score:",f1_score(y_test,preds,average="weighted",zero_division=0))
-
-        cm = confusion_matrix(y_test,preds)
-
-        fig = px.imshow(cm,text_auto=True)
-
-        st.plotly_chart(fig)
-
-        if hasattr(best_model,"predict_proba") and len(np.unique(y_test))==2:
-
-            probs = best_model.predict_proba(X_test)[:,1]
-
-            fpr,tpr,_ = roc_curve(y_test,probs)
-
-            roc_auc = auc(fpr,tpr)
-
-            fig = go.Figure()
-
-            fig.add_trace(go.Scatter(x=fpr,y=tpr,name="ROC Curve"))
-
-            fig.update_layout(
-                title=f"ROC Curve (AUC={roc_auc:.2f})",
-                xaxis_title="False Positive Rate",
-                yaxis_title="True Positive Rate"
-            )
-
-            st.plotly_chart(fig)
-
-    else:
-
-        st.write("RMSE:",np.sqrt(mean_squared_error(y_test,preds)))
-        st.write("MAE:",mean_absolute_error(y_test,preds))
-        st.write("R2 Score:",r2_score(y_test,preds))
-
-# ---------------- Feature Importance ----------------
-
-    st.subheader("📊 Feature Importance")
-
-    if hasattr(best_model,"feature_importances_"):
-
-        importance = pd.DataFrame({
-            "Feature":X.columns,
-            "Importance":best_model.feature_importances_
-        })
-
-        importance = importance.sort_values(by="Importance",ascending=False)
-
-        fig = px.bar(importance,x="Feature",y="Importance")
-
-        st.plotly_chart(fig)
-
-    else:
-
-        st.info("Feature importance not available")
-
-# ---------------- Download Model ----------------
-
-    st.subheader("📥 Download Model")
-
-    model_bytes = pickle.dumps(best_model)
-
-    st.download_button(
-        label="Download Trained Model",
-        data=model_bytes,
-        file_name="best_model.pkl"
-    )
-
-# ---------------- Prediction ----------------
-
-    st.subheader("🔮 Prediction")
-
-    user_input = {}
-
-    for col in X.columns:
-
-        user_input[col] = st.number_input(
-            f"Enter {col}",
-            value=float(X[col].mean())
-        )
-
-    input_df = pd.DataFrame([user_input])
-
-    if st.button("Predict"):
-
-        pred = best_model.predict(input_df)
-
-        st.success(f"Prediction: {pred[0]}")
+        st.info("Train model first from Model tab")
 
 else:
-
     st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, #f6d365, #fda085);
-        padding: 25px;
-        border-radius: 12px;
-        text-align:center;
-        font-size:18px;
-        font-weight:600;
-    ">
-    📂 Upload your dataset to start building powerful ML models 🚀
+    <div style="background:linear-gradient(135deg,#f6d365,#fda085);
+    padding:25px;border-radius:10px;text-align:center;font-size:18px">
+    🚀 Upload Dataset to Start AutoML Studio
     </div>
     """, unsafe_allow_html=True)
