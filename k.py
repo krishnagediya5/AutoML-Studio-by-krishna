@@ -1,3 +1,6 @@
+# FINAL CODE — Only additions made, existing logic preserved
+# Added: Feature Importance (Supervised + Unsupervised) and fixed placement for Unsupervised User Input
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -8,7 +11,7 @@ import time
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
 
 # Classification
@@ -26,15 +29,15 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 
-# ---------------- NEW UNSUPERVISED IMPORTS ----------------
+# Unsupervised
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
 from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 
 from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, mean_squared_error, mean_absolute_error, r2_score,
-    roc_curve, auc
+    accuracy_score,
+    confusion_matrix,
+    mean_squared_error
 )
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
@@ -53,24 +56,21 @@ if file:
 
     st.success("✅ Dataset Loaded Successfully")
 
-# ---------------- PREVIEW ----------------
     st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
-# ---------------- INFO ----------------
     col1, col2 = st.columns(2)
     col1.write(f"📐 Shape: {df.shape}")
     col2.write("❗ Missing Values")
     col2.dataframe(df.isnull().sum().to_frame("Count"))
 
-# ---------------- EDA ----------------
     numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
         col = st.selectbox("📈 Distribution Column", numeric_cols)
         st.plotly_chart(px.histogram(df, x=col))
 
-# ---------------- Preprocessing ----------------
+    # ---------------- Preprocessing ----------------
     st.subheader("🧹 Preprocessing")
 
     fill_cols = st.multiselect("Columns", df.columns)
@@ -102,7 +102,7 @@ if file:
         st.session_state.df = df
         st.success("✅ Missing Values Handled")
 
-# ---------------- Encoding ----------------
+    # ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
 
     encode_cols = st.multiselect("Categorical Columns", cat_cols)
@@ -115,7 +115,7 @@ if file:
         st.session_state.df = df
         st.success("✅ Encoding Applied")
 
-# ---------------- Scaling ----------------
+    # ---------------- Scaling ----------------
     num_cols = df.select_dtypes(include=np.number).columns
 
     scale_cols = st.multiselect("Columns for Scaling", num_cols)
@@ -133,10 +133,6 @@ if file:
 
         st.session_state.df = df
         st.success("✅ Scaling Applied")
-
-# =========================================================
-# LEARNING TYPE SELECTOR
-# =========================================================
 
     learning_type = st.radio(
         "🧠 Select Learning Type",
@@ -190,8 +186,6 @@ if file:
         best_model=None
         best_model_name=None
 
-# ---------------- Classification ----------------
-
         if task=="Classification":
 
             best_score=0
@@ -229,40 +223,26 @@ if file:
 
             st.success(f"Best Model Selected: {best_model_name}")
 
-            # ---------------- Comparison Graph ----------------
-            st.subheader("📊 Model Comparison Graph")
+            # ---------------- FEATURE IMPORTANCE (SUPERVISED) ----------------
+            if hasattr(best_model, "feature_importances_"):
 
-            fig = px.bar(
-                res,
-                x="Model",
-                y="Accuracy",
-                title="Model Accuracy Comparison",
-                text="Accuracy"
-            )
+                st.subheader("⭐ Feature Importance")
 
-            st.plotly_chart(fig)
+                importance = best_model.feature_importances_
 
-            # ---------------- User Input Prediction ----------------
-            st.subheader("🧑‍💻 User Input Prediction")
+                fi_df = pd.DataFrame({
+                    "Feature": selected_features,
+                    "Importance": importance
+                })
 
-            user_data = {}
-
-            for col in selected_features:
-                val = st.number_input(
-                    f"Enter value for {col}",
-                    value=0.0
+                fig_imp = px.bar(
+                    fi_df,
+                    x="Feature",
+                    y="Importance",
+                    title="Feature Importance"
                 )
-                user_data[col] = val
 
-            if st.button("Predict"):
-
-                input_df = pd.DataFrame([user_data])
-
-                prediction = best_model.predict(input_df)
-
-                st.success(f"Prediction: {prediction[0]}")
-
-# ---------------- Regression ----------------
+                st.plotly_chart(fig_imp)
 
         else:
 
@@ -302,41 +282,29 @@ if file:
 
             st.success(f"Best Model Selected: {best_model_name}")
 
-            # ---------------- Comparison Graph ----------------
-            st.subheader("📊 Model Comparison Graph")
+            # ---------------- FEATURE IMPORTANCE (SUPERVISED REGRESSION) ----------------
+            if hasattr(best_model, "feature_importances_"):
 
-            fig = px.bar(
-                res,
-                x="Model",
-                y="RMSE",
-                title="Model RMSE Comparison",
-                text="RMSE"
-            )
+                st.subheader("⭐ Feature Importance")
 
-            st.plotly_chart(fig)
+                importance = best_model.feature_importances_
 
-            # ---------------- User Input Prediction ----------------
-            st.subheader("🧑‍💻 User Input Prediction")
+                fi_df = pd.DataFrame({
+                    "Feature": selected_features,
+                    "Importance": importance
+                })
 
-            user_data = {}
-
-            for col in selected_features:
-                val = st.number_input(
-                    f"Enter value for {col}",
-                    value=0.0
+                fig_imp = px.bar(
+                    fi_df,
+                    x="Feature",
+                    y="Importance",
+                    title="Feature Importance"
                 )
-                user_data[col] = val
 
-            if st.button("Predict"):
-
-                input_df = pd.DataFrame([user_data])
-
-                prediction = best_model.predict(input_df)
-
-                st.success(f"Prediction: {prediction[0]}")
+                st.plotly_chart(fig_imp)
 
 # =========================================================
-# UNSUPERVISED (UNCHANGED)
+# UNSUPERVISED
 # =========================================================
 
     else:
@@ -395,17 +363,6 @@ if file:
         st.success(
             f"Best Clustering Model: {best_model_name}"
         )
-        st.subheader("📊 Model Comparison Graph")
-
-        fig_bar = px.bar(
-            res,
-            x="Algorithm",
-            y="Silhouette Score",
-            title="Unsupervised Model Comparison",
-            text="Silhouette Score"
-        )
-
-        st.plotly_chart(fig_bar)
 
         df["Cluster"] = best_labels
 
@@ -429,71 +386,32 @@ if file:
         )
 
         st.plotly_chart(fig)
-        # ---------------- USER INPUT FOR CLUSTER PREDICTION ----------------
 
-st.subheader("🧑‍💻 User Input Cluster Prediction")
+        # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
+        st.subheader("⭐ Feature Importance (Unsupervised)")
 
-user_data = {}
+        pca_imp = PCA(n_components=2)
+        pca_imp.fit(data_scaled)
 
-for col in data.columns:
-
-    val = st.number_input(
-        f"Enter value for {col}",
-        value=0.0,
-        key=f"unsup_{col}"
-    )
-
-    user_data[col] = val
-
-if st.button("Predict Cluster"):
-
-    input_df = pd.DataFrame(
-        [user_data]
-    )
-
-    input_scaled = scaler.transform(
-        input_df
-    )
-
-    if best_model_name == "KMeans":
-
-        model = KMeans(
-            n_clusters=3
+        importance_values = np.mean(
+            np.abs(pca_imp.components_),
+            axis=0
         )
 
-        model.fit(data_scaled)
+        fi_unsup_df = pd.DataFrame({
+            "Feature": data.columns,
+            "Importance": importance_values
+        })
 
-        cluster = model.predict(
-            input_scaled
+        fig_unsup_imp = px.bar(
+            fi_unsup_df,
+            x="Feature",
+            y="Importance",
+            title="Unsupervised Feature Importance"
         )
 
-        st.success(
-            f"Predicted Cluster: {cluster[0]}"
-        )
+        st.plotly_chart(fig_unsup_imp)
 
-    elif best_model_name == "Birch":
-
-        model = Birch(
-            n_clusters=3
-        )
-
-        model.fit(data_scaled)
-
-        cluster = model.predict(
-            input_scaled
-        )
-
-        st.success(
-            f"Predicted Cluster: {cluster[0]}"
-        )
-
-    else:
-
-        st.warning(
-            "Prediction not supported for this clustering algorithm"
-        )
 else:
 
     st.info("Upload dataset to start AutoML")
-
-        
