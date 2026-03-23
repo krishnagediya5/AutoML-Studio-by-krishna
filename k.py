@@ -5,6 +5,7 @@ import pickle
 import plotly.express as px
 import plotly.graph_objects as go
 import time
+import io
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
@@ -26,7 +27,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 
-# ---------------- NEW UNSUPERVISED IMPORTS ----------------
+# Unsupervised
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
 from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
@@ -67,8 +68,16 @@ if file:
     numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
+
         col = st.selectbox("📈 Distribution Column", numeric_cols)
-        st.plotly_chart(px.histogram(df, x=col))
+
+        fig_hist = px.histogram(df, x=col)
+
+        st.plotly_chart(fig_hist)
+
+        # NEW: Graph details
+        st.subheader("📊 Graph Details")
+        st.dataframe(df[col].describe())
 
 # ---------------- Preprocessing ----------------
     st.subheader("🧹 Preprocessing")
@@ -134,19 +143,15 @@ if file:
         st.session_state.df = df
         st.success("✅ Scaling Applied")
 
-# =========================================================
-# NEW — LEARNING TYPE SELECTOR
-# =========================================================
-
+# ---------------- Learning Type ----------------
     learning_type = st.radio(
         "🧠 Select Learning Type",
         ["Supervised","Unsupervised"]
     )
 
-# =========================================================
-# SUPERVISED (YOUR ORIGINAL LOGIC — SAME)
-# =========================================================
-
+# =====================================================
+# SUPERVISED
+# =====================================================
     if learning_type == "Supervised":
 
         st.subheader("⚙️ Model Setup")
@@ -190,8 +195,6 @@ if file:
         best_model=None
         best_model_name=None
 
-# ---------------- Classification ----------------
-
         if task=="Classification":
 
             best_score=0
@@ -218,7 +221,6 @@ if file:
                 results.append([name,acc])
 
                 if acc>best_score:
-
                     best_score=acc
                     best_model=model
                     best_model_name=name
@@ -227,9 +229,15 @@ if file:
 
             st.dataframe(res)
 
-            st.success(f"Best Model Selected: {best_model_name}")
+            fig_bar = px.bar(res,x="Model",y="Accuracy")
 
-# ---------------- Regression ----------------
+            st.plotly_chart(fig_bar)
+
+            # Graph detail
+            st.subheader("📊 Graph Details")
+            st.dataframe(res)
+
+            st.success(f"Best Model Selected: {best_model_name}")
 
         else:
 
@@ -258,7 +266,6 @@ if file:
                 results.append([name,rmse])
 
                 if rmse<best_score:
-
                     best_score=rmse
                     best_model=model
                     best_model_name=name
@@ -267,12 +274,32 @@ if file:
 
             st.dataframe(res)
 
+            fig_bar = px.bar(res,x="Model",y="RMSE")
+
+            st.plotly_chart(fig_bar)
+
+            st.subheader("📊 Graph Details")
+            st.dataframe(res)
+
             st.success(f"Best Model Selected: {best_model_name}")
 
-# =========================================================
-# NEW — UNSUPERVISED SECTION ONLY
-# =========================================================
+        # NEW: MODEL DOWNLOAD
+        if best_model is not None:
 
+            buffer = io.BytesIO()
+
+            pickle.dump(best_model, buffer)
+
+            st.download_button(
+                label="💾 Download Best Model",
+                data=buffer.getvalue(),
+                file_name="best_model.pkl",
+                mime="application/octet-stream"
+            )
+
+# =====================================================
+# UNSUPERVISED
+# =====================================================
     else:
 
         st.subheader("🧠 Unsupervised Model Leaderboard")
@@ -283,11 +310,11 @@ if file:
 
         data_scaled = scaler.fit_transform(data)
 
-        models = {
-            "KMeans": KMeans(n_clusters=3),
-            "Agglomerative": AgglomerativeClustering(n_clusters=3),
-            "Birch": Birch(n_clusters=3),
-            "DBSCAN": DBSCAN()
+        models={
+            "KMeans":KMeans(n_clusters=3),
+            "Agglomerative":AgglomerativeClustering(n_clusters=3),
+            "Birch":Birch(n_clusters=3),
+            "DBSCAN":DBSCAN()
         }
 
         results=[]
@@ -295,57 +322,52 @@ if file:
 
         for name,model in models.items():
 
-            labels = model.fit_predict(data_scaled)
+            labels=model.fit_predict(data_scaled)
 
-            if len(set(labels)) > 1:
+            if len(set(labels))>1:
 
-                score = silhouette_score(
-                    data_scaled,
-                    labels
-                )
+                score=silhouette_score(data_scaled,labels)
 
             else:
 
-                score = -1
+                score=-1
 
             results.append([name,score])
 
-            if score > best_score:
+            if score>best_score:
 
-                best_score = score
-                best_model_name = name
-                best_labels = labels
+                best_score=score
+                best_model=model
+                best_model_name=name
+                best_labels=labels
 
-        res = pd.DataFrame(
-            results,
-            columns=[
-                "Algorithm",
-                "Silhouette Score"
-            ]
-        )
+        res=pd.DataFrame(results,columns=["Algorithm","Silhouette Score"])
 
         st.dataframe(res)
 
-        st.success(
-            f"Best Clustering Model: {best_model_name}"
-        )
+        fig_bar = px.bar(res,x="Algorithm",y="Silhouette Score")
 
-        df["Cluster"] = best_labels
+        st.plotly_chart(fig_bar)
 
-        pca = PCA(n_components=2)
+        st.subheader("📊 Graph Details")
+        st.dataframe(res)
 
-        reduced = pca.fit_transform(
-            data_scaled
-        )
+        st.success(f"Best Clustering Model: {best_model_name}")
 
-        plot_df = pd.DataFrame(
-            reduced,
-            columns=["PC1","PC2"]
-        )
+        df["Cluster"]=best_labels
 
-        plot_df["Cluster"] = best_labels
+        st.write("Cluster Counts")
+        st.dataframe(df["Cluster"].value_counts())
 
-        fig = px.scatter(
+        pca=PCA(n_components=2)
+
+        reduced=pca.fit_transform(data_scaled)
+
+        plot_df=pd.DataFrame(reduced,columns=["PC1","PC2"])
+
+        plot_df["Cluster"]=best_labels
+
+        fig=px.scatter(
             plot_df,
             x="PC1",
             y="PC2",
@@ -354,6 +376,19 @@ if file:
         )
 
         st.plotly_chart(fig)
+
+        # NEW: DOWNLOAD CLUSTER MODEL
+
+        buffer = io.BytesIO()
+
+        pickle.dump(best_model, buffer)
+
+        st.download_button(
+            label="💾 Download Best Clustering Model",
+            data=buffer.getvalue(),
+            file_name="best_clustering_model.pkl",
+            mime="application/octet-stream"
+        )
 
 else:
 
