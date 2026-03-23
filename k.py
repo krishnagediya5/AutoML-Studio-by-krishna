@@ -395,14 +395,23 @@ if file:
         st.success(
             f"Best Clustering Model: {best_model_name}"
         )
+        st.subheader("📊 Model Comparison Graph")
+
+        fig_bar = px.bar(
+            res,
+            x="Algorithm",
+            y="Silhouette Score",
+            title="Unsupervised Model Comparison",
+            text="Silhouette Score"
+        )
+
+        st.plotly_chart(fig_bar)
 
         df["Cluster"] = best_labels
 
         pca = PCA(n_components=2)
 
-        reduced = pca.fit_transform(
-            data_scaled
-        )
+        reduced = pca.fit_transform(data_scaled)
 
         plot_df = pd.DataFrame(
             reduced,
@@ -424,3 +433,5 @@ if file:
 else:
 
     st.info("Upload dataset to start AutoML")
+
+        
