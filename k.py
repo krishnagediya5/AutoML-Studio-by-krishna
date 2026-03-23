@@ -144,10 +144,202 @@ if file:
     )
 
 # =========================================================
-# UNSUPERVISED
+# SUPERVISED
 # =========================================================
 
-    if learning_type == "Unsupervised":
+    if learning_type == "Supervised":
+
+        st.subheader("⚙️ Model Setup")
+
+        target = st.selectbox("Target Column", df.columns)
+
+        df = df.dropna(subset=[target])
+
+        X = df.drop(columns=[target])
+        y = df[target]
+
+        target_type = type_of_target(y)
+
+        if target_type in ["binary", "multiclass"]:
+            task = "Classification"
+        else:
+            task = "Regression"
+
+        st.write(f"🎯 Task: {task}")
+
+        k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
+
+        selector = SelectKBest(
+            f_classif if task=="Classification" else f_regression,
+            k=k
+        )
+
+        X_new = selector.fit_transform(X,y)
+
+        selected_features = X.columns[selector.get_support()]
+
+        X = pd.DataFrame(X_new,columns=selected_features)
+
+        X_train,X_test,y_train,y_test = train_test_split(
+            X,y,test_size=0.2,random_state=42
+        )
+
+        st.subheader("🏆 Model Leaderboard")
+
+        results=[]
+        best_model=None
+        best_model_name=None
+
+# ---------------- Classification ----------------
+
+        if task=="Classification":
+
+            best_score=0
+
+            models={
+                "Logistic Regression":LogisticRegression(max_iter=1000),
+                "Random Forest":RandomForestClassifier(),
+                "Extra Trees":ExtraTreesClassifier(),
+                "Gradient Boosting":GradientBoostingClassifier(),
+                "Decision Tree":DecisionTreeClassifier(),
+                "KNN":KNeighborsClassifier(),
+                "SVM":SVC(probability=True),
+                "Naive Bayes":GaussianNB()
+            }
+
+            for name,model in models.items():
+
+                model.fit(X_train,y_train)
+
+                preds=model.predict(X_test)
+
+                acc=accuracy_score(y_test,preds)
+
+                results.append([name,acc])
+
+                if acc>best_score:
+
+                    best_score=acc
+                    best_model=model
+                    best_model_name=name
+
+            res=pd.DataFrame(results,columns=["Model","Accuracy"])
+
+            st.dataframe(res)
+
+            st.success(f"Best Model Selected: {best_model_name}")
+
+            # ---------------- Comparison Graph ----------------
+            st.subheader("📊 Model Comparison Graph")
+
+            fig = px.bar(
+                res,
+                x="Model",
+                y="Accuracy",
+                title="Model Accuracy Comparison",
+                text="Accuracy"
+            )
+
+            st.plotly_chart(fig)
+
+            # ---------------- User Input Prediction ----------------
+            st.subheader("🧑‍💻 User Input Prediction")
+
+            user_data = {}
+
+            for col in selected_features:
+                val = st.number_input(
+                    f"Enter value for {col}",
+                    value=0.0
+                )
+                user_data[col] = val
+
+            if st.button("Predict"):
+
+                input_df = pd.DataFrame([user_data])
+
+                prediction = best_model.predict(input_df)
+
+                st.success(f"Prediction: {prediction[0]}")
+
+# ---------------- Regression ----------------
+
+        else:
+
+            best_score=float("inf")
+
+            models={
+                "Linear Regression":LinearRegression(),
+                "Ridge":Ridge(),
+                "Lasso":Lasso(),
+                "Random Forest":RandomForestRegressor(),
+                "Extra Trees":ExtraTreesRegressor(),
+                "Gradient Boosting":GradientBoostingRegressor(),
+                "Decision Tree":DecisionTreeRegressor(),
+                "KNN":KNeighborsRegressor(),
+                "SVR":SVR()
+            }
+
+            for name,model in models.items():
+
+                model.fit(X_train,y_train)
+
+                preds=model.predict(X_test)
+
+                rmse=np.sqrt(mean_squared_error(y_test,preds))
+
+                results.append([name,rmse])
+
+                if rmse<best_score:
+
+                    best_score=rmse
+                    best_model=model
+                    best_model_name=name
+
+            res=pd.DataFrame(results,columns=["Model","RMSE"])
+
+            st.dataframe(res)
+
+            st.success(f"Best Model Selected: {best_model_name}")
+
+            # ---------------- Comparison Graph ----------------
+            st.subheader("📊 Model Comparison Graph")
+
+            fig = px.bar(
+                res,
+                x="Model",
+                y="RMSE",
+                title="Model RMSE Comparison",
+                text="RMSE"
+            )
+
+            st.plotly_chart(fig)
+
+            # ---------------- User Input Prediction ----------------
+            st.subheader("🧑‍💻 User Input Prediction")
+
+            user_data = {}
+
+            for col in selected_features:
+                val = st.number_input(
+                    f"Enter value for {col}",
+                    value=0.0
+                )
+                user_data[col] = val
+
+            if st.button("Predict"):
+
+                input_df = pd.DataFrame([user_data])
+
+                prediction = best_model.predict(input_df)
+
+                st.success(f"Prediction: {prediction[0]}")
+
+# =========================================================
+# UNSUPERVISED (UNCHANGED)
+# =========================================================
+
+    else:
 
         st.subheader("🧠 Unsupervised Model Leaderboard")
 
@@ -204,27 +396,13 @@ if file:
             f"Best Clustering Model: {best_model_name}"
         )
 
-        # ============================
-        # NEW: MODEL COMPARISON GRAPH
-        # ============================
-
-        st.subheader("📊 Model Comparison Graph")
-
-        fig_bar = px.bar(
-            res,
-            x="Algorithm",
-            y="Silhouette Score",
-            title="Unsupervised Model Comparison",
-            text="Silhouette Score"
-        )
-
-        st.plotly_chart(fig_bar)
-
         df["Cluster"] = best_labels
 
         pca = PCA(n_components=2)
 
-        reduced = pca.fit_transform(data_scaled)
+        reduced = pca.fit_transform(
+            data_scaled
+        )
 
         plot_df = pd.DataFrame(
             reduced,
