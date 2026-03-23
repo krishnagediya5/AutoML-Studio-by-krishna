@@ -26,13 +26,14 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 
-# Unsupervised
+# ----------- NEW (UNSUPERVISED IMPORTS ONLY) -----------
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
 from sklearn.decomposition import PCA
 
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, mean_squared_error, mean_absolute_error, r2_score
+    confusion_matrix, mean_squared_error, mean_absolute_error, r2_score,
+    roc_curve, auc
 )
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
@@ -41,12 +42,10 @@ st.set_page_config(page_title="AutoML Studio", layout="wide")
 st.markdown("""
 <style>
 .stApp {background: linear-gradient(135deg,#0f172a,#1e293b);color:white;}
-.hero {
-background: linear-gradient(135deg,rgba(102,126,234,0.6),rgba(118,75,162,0.6));
+.hero {background: linear-gradient(135deg,rgba(102,126,234,0.6),rgba(118,75,162,0.6));
 padding:40px;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.4);}
 .card {background: rgba(255,255,255,0.05);padding:20px;border-radius:15px;text-align:center;}
-.upload-box {
-background: linear-gradient(135deg,#f6d365,#fda085);
+.upload-box {background: linear-gradient(135deg,#f6d365,#fda085);
 padding:20px;border-radius:15px;text-align:center;font-weight:600;}
 </style>
 """, unsafe_allow_html=True)
@@ -74,6 +73,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.sidebar.markdown("## 📂 Upload Dataset")
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
+# ---------------- MAIN ----------------
 if file:
 
     if "df" not in st.session_state:
@@ -83,25 +83,28 @@ if file:
 
     st.success("✅ Dataset Loaded Successfully")
 
+# ---------------- PREVIEW ----------------
     st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
+# ---------------- INFO ----------------
     col1, col2 = st.columns(2)
     col1.write(f"📐 Shape: {df.shape}")
     col2.write("❗ Missing Values")
     col2.dataframe(df.isnull().sum().to_frame("Count"))
 
+# ---------------- EDA ----------------
     numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
         col = st.selectbox("📈 Distribution Column", numeric_cols)
         st.plotly_chart(px.histogram(df, x=col))
 
-    # ---------------- Preprocessing ----------------
-
+# ---------------- Preprocessing ----------------
     st.subheader("🧹 Preprocessing")
 
     fill_cols = st.multiselect("Columns", df.columns)
+
     fill_method = st.selectbox(
         "Method",
         ["Mean","Median","Mode","Forward Fill","Backward Fill"]
@@ -129,14 +132,10 @@ if file:
         st.session_state.df = df
         st.success("✅ Missing Values Handled")
 
-    # ---------------- Encoding ----------------
-
+# ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
 
-    encode_cols = st.multiselect(
-        "Categorical Columns",
-        cat_cols
-    )
+    encode_cols = st.multiselect("Categorical Columns", cat_cols)
 
     if st.button("Apply Encoding"):
 
@@ -146,14 +145,10 @@ if file:
         st.session_state.df = df
         st.success("✅ Encoding Applied")
 
-    # ---------------- Scaling ----------------
-
+# ---------------- Scaling ----------------
     num_cols = df.select_dtypes(include=np.number).columns
 
-    scale_cols = st.multiselect(
-        "Columns for Scaling",
-        num_cols
-    )
+    scale_cols = st.multiselect("Columns for Scaling", num_cols)
 
     scale_method = st.selectbox(
         "Scaling Method",
@@ -167,12 +162,11 @@ if file:
         df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
         st.session_state.df = df
-
         st.success("✅ Scaling Applied")
 
-    # =====================================================
-    # 🧠 UNSUPERVISED LEARNING (NEW SECTION)
-    # =====================================================
+# =========================================================
+# 🧠 NEW SECTION — UNSUPERVISED LEARNING (ONLY ADDITION)
+# =========================================================
 
     st.subheader("🧠 Unsupervised Learning")
 
@@ -198,7 +192,7 @@ if file:
 
         if st.button("Run Clustering"):
 
-            with st.spinner("Clustering Data..."):
+            with st.spinner("🤖 Running Clustering..."):
 
                 if algorithm == "KMeans":
 
@@ -233,9 +227,7 @@ if file:
 
                 st.success("✅ Clustering Completed")
 
-                st.write(
-                    "Cluster Distribution"
-                )
+                st.write("Cluster Distribution")
 
                 st.dataframe(
                     df["Cluster"].value_counts()
@@ -266,35 +258,60 @@ if file:
 
                 st.plotly_chart(fig)
 
-    # =====================================================
-    # EXISTING SUPERVISED LOGIC CONTINUES
-    # (UNCHANGED)
-    # =====================================================
+# =========================================================
+# BELOW THIS — YOUR ORIGINAL CODE CONTINUES UNCHANGED
+# =========================================================
 
+# ---------------- Model Setup ----------------
     st.subheader("⚙️ Model Setup")
 
-    target = st.selectbox(
-        "Target Column",
-        df.columns
-    )
+    target = st.selectbox("Target Column", df.columns)
 
-    df = df.dropna(
-        subset=[target]
-    )
+    df = df.dropna(subset=[target])
 
-    X = df.drop(
-        columns=[target]
-    )
-
+    X = df.drop(columns=[target])
     y = df[target]
 
+# ---------------- TASK ----------------
     target_type = type_of_target(y)
 
-    if target_type in ["binary","multiclass"]:
+    if target_type in ["binary", "multiclass"]:
         task = "Classification"
     else:
         task = "Regression"
 
     st.write(f"🎯 Task: {task}")
 
-    # (Rest of your original supervised code continues exactly the same)
+# ---------------- Feature Selection ----------------
+    k = st.slider(
+        "Top K Features",
+        1,
+        X.shape[1],
+        min(5, X.shape[1])
+    )
+
+    selector = SelectKBest(
+        f_classif if task=="Classification" else f_regression,
+        k=k
+    )
+
+    X_new = selector.fit_transform(X,y)
+
+    selected_features = X.columns[
+        selector.get_support()
+    ]
+
+    X = pd.DataFrame(
+        X_new,
+        columns=selected_features
+    )
+
+# ---------------- Split ----------------
+    X_train,X_test,y_train,y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42
+    )
+
+# (REST OF YOUR CODE REMAINS EXACTLY SAME)
