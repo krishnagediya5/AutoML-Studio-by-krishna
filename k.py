@@ -302,7 +302,7 @@ if file:
                 )
 
                 st.plotly_chart(fig_imp)
-                 st.subheader("🧑‍💻 User Input Prediction")
+            st.subheader("🧑‍💻 User Input Prediction")
 
             user_data = {}
 
