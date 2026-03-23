@@ -44,7 +44,6 @@ st.set_page_config(page_title="AutoML Studio", layout="wide")
 st.sidebar.markdown("## 📂 Upload Dataset")
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
-# ---------------- MAIN ----------------
 if file:
 
     if "df" not in st.session_state:
@@ -75,7 +74,6 @@ if file:
 
         st.plotly_chart(fig_hist)
 
-        # NEW: Graph details
         st.subheader("📊 Graph Details")
         st.dataframe(df[col].describe())
 
@@ -233,57 +231,11 @@ if file:
 
             st.plotly_chart(fig_bar)
 
-            # Graph detail
             st.subheader("📊 Graph Details")
             st.dataframe(res)
 
             st.success(f"Best Model Selected: {best_model_name}")
 
-        else:
-
-            best_score=float("inf")
-
-            models={
-                "Linear Regression":LinearRegression(),
-                "Ridge":Ridge(),
-                "Lasso":Lasso(),
-                "Random Forest":RandomForestRegressor(),
-                "Extra Trees":ExtraTreesRegressor(),
-                "Gradient Boosting":GradientBoostingRegressor(),
-                "Decision Tree":DecisionTreeRegressor(),
-                "KNN":KNeighborsRegressor(),
-                "SVR":SVR()
-            }
-
-            for name,model in models.items():
-
-                model.fit(X_train,y_train)
-
-                preds=model.predict(X_test)
-
-                rmse=np.sqrt(mean_squared_error(y_test,preds))
-
-                results.append([name,rmse])
-
-                if rmse<best_score:
-                    best_score=rmse
-                    best_model=model
-                    best_model_name=name
-
-            res=pd.DataFrame(results,columns=["Model","RMSE"])
-
-            st.dataframe(res)
-
-            fig_bar = px.bar(res,x="Model",y="RMSE")
-
-            st.plotly_chart(fig_bar)
-
-            st.subheader("📊 Graph Details")
-            st.dataframe(res)
-
-            st.success(f"Best Model Selected: {best_model_name}")
-
-        # NEW: MODEL DOWNLOAD
         if best_model is not None:
 
             buffer = io.BytesIO()
@@ -325,17 +277,13 @@ if file:
             labels=model.fit_predict(data_scaled)
 
             if len(set(labels))>1:
-
                 score=silhouette_score(data_scaled,labels)
-
             else:
-
                 score=-1
 
             results.append([name,score])
 
             if score>best_score:
-
                 best_score=score
                 best_model=model
                 best_model_name=name
@@ -357,7 +305,43 @@ if file:
         df["Cluster"]=best_labels
 
         st.write("Cluster Counts")
-        st.dataframe(df["Cluster"].value_counts())
+        cluster_counts = df["Cluster"].value_counts().reset_index()
+        cluster_counts.columns = ["Cluster","Count"]
+
+        st.dataframe(cluster_counts)
+
+        # ============================
+        # NEW FEATURE
+        # ============================
+
+        st.subheader("🔎 Cluster Data Details")
+
+        unique_clusters = sorted(df["Cluster"].unique())
+
+        selected_cluster = st.selectbox(
+            "Select Cluster to View Data",
+            unique_clusters
+        )
+
+        cluster_data = df[
+            df["Cluster"] == selected_cluster
+        ]
+
+        st.write(
+            f"Total records in Cluster {selected_cluster}:",
+            len(cluster_data)
+        )
+
+        st.dataframe(cluster_data)
+
+        st.download_button(
+            "⬇ Download Cluster Data",
+            cluster_data.to_csv(index=False),
+            file_name=f"cluster_{selected_cluster}_data.csv",
+            mime="text/csv"
+        )
+
+        # PCA Visualization
 
         pca=PCA(n_components=2)
 
@@ -376,8 +360,6 @@ if file:
         )
 
         st.plotly_chart(fig)
-
-        # NEW: DOWNLOAD CLUSTER MODEL
 
         buffer = io.BytesIO()
 
