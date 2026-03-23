@@ -429,6 +429,67 @@ if file:
         )
 
         st.plotly_chart(fig_unsup_imp)
+    st.subheader("🧑‍💻 User Input Cluster Prediction")
+
+    user_data = {}
+    
+    for col in data.columns:
+    
+        val = st.number_input(
+            f"Enter value for {col}",
+            value=0.0,
+            key=f"unsup_{col}"
+        )
+    
+        user_data[col] = val
+    
+    if st.button("Predict Cluster"):
+    
+        input_df = pd.DataFrame(
+            [user_data]
+        )
+    
+        input_scaled = scaler.transform(
+            input_df
+        )
+    
+        if best_model_name == "KMeans":
+    
+            model = KMeans(
+                n_clusters=3
+            )
+    
+            model.fit(data_scaled)
+    
+            cluster = model.predict(
+                input_scaled
+            )
+    
+            st.success(
+                f"Predicted Cluster: {cluster[0]}"
+            )
+    
+        elif best_model_name == "Birch":
+    
+            model = Birch(
+                n_clusters=3
+            )
+    
+            model.fit(data_scaled)
+    
+            cluster = model.predict(
+                input_scaled
+            )
+    
+            st.success(
+                f"Predicted Cluster: {cluster[0]}"
+            )
+    
+        else:
+    
+            st.warning(
+                "Prediction not supported for this clustering algorithm"
+            )
 
 else:
 
