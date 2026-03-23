@@ -1,6 +1,3 @@
-# FINAL CODE — Only additions made, existing logic preserved
-# Added: Feature Importance (Supervised + Unsupervised) and fixed placement for Unsupervised User Input
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -42,11 +39,11 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-# ---------------- SIDEBAR ----------------
+# SIDEBAR 
 st.sidebar.markdown("## 📂 Upload Dataset")
 file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
-# ---------------- MAIN ----------------
+# MAIN 
 if file:
 
     if "df" not in st.session_state:
