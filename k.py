@@ -492,6 +492,8 @@ if st.button("Predict Cluster"):
         st.warning(
             "Prediction not supported for this clustering algorithm"
         )
+    
+
 
 else:
 
