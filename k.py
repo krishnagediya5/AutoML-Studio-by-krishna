@@ -26,7 +26,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 
-# ----------- NEW (UNSUPERVISED IMPORTS ONLY) -----------
+# Unsupervised
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
 from sklearn.decomposition import PCA
 
@@ -43,37 +43,42 @@ st.markdown("""
 <style>
 .stApp {background: linear-gradient(135deg,#0f172a,#1e293b);color:white;}
 .hero {background: linear-gradient(135deg,rgba(102,126,234,0.6),rgba(118,75,162,0.6));
-padding:40px;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.4);}
+padding:40px;border-radius:20px;}
 .card {background: rgba(255,255,255,0.05);padding:20px;border-radius:15px;text-align:center;}
 .upload-box {background: linear-gradient(135deg,#f6d365,#fda085);
 padding:20px;border-radius:15px;text-align:center;font-weight:600;}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HERO ----------------
+# HERO
 st.markdown("""
 <div class="hero">
 <h1>🚀 AutoML Studio</h1>
-<h3>🔥 Build Machine Learning Models in Seconds</h3>
-<p>Upload datasets, preprocess, train & predict — all in one place.</p>
-<p>👉 No coding • No complexity • Just powerful AI</p>
+<h3>Build ML Models in Seconds</h3>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-c1,c2,c3 = st.columns(3)
-c1.markdown('<div class="card">⚡ Instant</div>', unsafe_allow_html=True)
-c2.markdown('<div class="card">🤖 8+ Models</div>', unsafe_allow_html=True)
-c3.markdown('<div class="card">📊 Optimized</div>', unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ---------------- SIDEBAR ----------------
 st.sidebar.markdown("## 📂 Upload Dataset")
-file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
-# ---------------- MAIN ----------------
+file = st.sidebar.file_uploader(
+    "Upload CSV",
+    type=["csv"]
+)
+
+# ============================
+# NEW: LEARNING TYPE SELECTOR
+# ============================
+
+learning_type = st.sidebar.radio(
+    "Select Learning Type",
+    [
+        "Supervised",
+        "Unsupervised"
+    ]
+)
+
+# ============================
+
 if file:
 
     if "df" not in st.session_state:
@@ -81,47 +86,69 @@ if file:
 
     df = st.session_state.df
 
-    st.success("✅ Dataset Loaded Successfully")
+    st.success("Dataset Loaded")
 
-# ---------------- PREVIEW ----------------
-    st.subheader("📊 Dataset Preview")
+    st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-# ---------------- INFO ----------------
-    col1, col2 = st.columns(2)
-    col1.write(f"📐 Shape: {df.shape}")
-    col2.write("❗ Missing Values")
-    col2.dataframe(df.isnull().sum().to_frame("Count"))
-
-# ---------------- EDA ----------------
-    numeric_cols = df.select_dtypes(include=np.number).columns
+    numeric_cols = df.select_dtypes(
+        include=np.number
+    ).columns
 
     if len(numeric_cols) > 0:
-        col = st.selectbox("📈 Distribution Column", numeric_cols)
-        st.plotly_chart(px.histogram(df, x=col))
 
-# ---------------- Preprocessing ----------------
-    st.subheader("🧹 Preprocessing")
+        col = st.selectbox(
+            "Distribution Column",
+            numeric_cols
+        )
 
-    fill_cols = st.multiselect("Columns", df.columns)
+        st.plotly_chart(
+            px.histogram(
+                df,
+                x=col
+            )
+        )
+
+# ============================
+# PREPROCESSING (COMMON)
+# ============================
+
+    st.subheader("Preprocessing")
+
+    fill_cols = st.multiselect(
+        "Columns",
+        df.columns
+    )
 
     fill_method = st.selectbox(
         "Method",
-        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
+        [
+            "Mean",
+            "Median",
+            "Mode",
+            "Forward Fill",
+            "Backward Fill"
+        ]
     )
 
     if st.button("Apply Missing Fill"):
 
         for col in fill_cols:
 
-            if fill_method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
-                df[col] = df[col].fillna(df[col].mean())
+            if fill_method == "Mean":
+                df[col] = df[col].fillna(
+                    df[col].mean()
+                )
 
-            elif fill_method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
-                df[col] = df[col].fillna(df[col].median())
+            elif fill_method == "Median":
+                df[col] = df[col].fillna(
+                    df[col].median()
+                )
 
             elif fill_method == "Mode":
-                df[col] = df[col].fillna(df[col].mode()[0])
+                df[col] = df[col].fillna(
+                    df[col].mode()[0]
+                )
 
             elif fill_method == "Forward Fill":
                 df[col] = df[col].ffill()
@@ -129,53 +156,178 @@ if file:
             elif fill_method == "Backward Fill":
                 df[col] = df[col].bfill()
 
-        st.session_state.df = df
-        st.success("✅ Missing Values Handled")
+        st.success("Missing Values Handled")
 
-# ---------------- Encoding ----------------
-    cat_cols = df.select_dtypes(include="object").columns
+# =====================================================
+# SUPERVISED
+# =====================================================
 
-    encode_cols = st.multiselect("Categorical Columns", cat_cols)
+    if learning_type == "Supervised":
 
-    if st.button("Apply Encoding"):
+        st.subheader("Supervised Learning")
 
-        for col in encode_cols:
-            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+        target = st.selectbox(
+            "Target Column",
+            df.columns
+        )
 
-        st.session_state.df = df
-        st.success("✅ Encoding Applied")
+        df = df.dropna(
+            subset=[target]
+        )
 
-# ---------------- Scaling ----------------
-    num_cols = df.select_dtypes(include=np.number).columns
+        X = df.drop(
+            columns=[target]
+        )
 
-    scale_cols = st.multiselect("Columns for Scaling", num_cols)
+        y = df[target]
 
-    scale_method = st.selectbox(
-        "Scaling Method",
-        ["Standardization","Normalization"]
-    )
+        target_type = type_of_target(y)
 
-    if st.button("Apply Scaling"):
+        if target_type in [
+            "binary",
+            "multiclass"
+        ]:
+            task = "Classification"
+        else:
+            task = "Regression"
 
-        scaler = StandardScaler() if scale_method=="Standardization" else MinMaxScaler()
+        st.write("Task:", task)
 
-        df[scale_cols] = scaler.fit_transform(df[scale_cols])
+        X_train,X_test,y_train,y_test = train_test_split(
+            X,
+            y,
+            test_size=0.2,
+            random_state=42
+        )
 
-        st.session_state.df = df
-        st.success("✅ Scaling Applied")
+        results = []
 
-# =========================================================
-# 🧠 NEW SECTION — UNSUPERVISED LEARNING (ONLY ADDITION)
-# =========================================================
+# ---------------- Classification ----------------
 
-    st.subheader("🧠 Unsupervised Learning")
+        if task == "Classification":
 
-    unsup_data = df.select_dtypes(include=np.number)
+            best_score = 0
 
-    if len(unsup_data.columns) > 1:
+            models = {
+                "Logistic Regression": LogisticRegression(max_iter=1000),
+                "Random Forest": RandomForestClassifier(),
+                "Decision Tree": DecisionTreeClassifier()
+            }
+
+            for name,model in models.items():
+
+                model.fit(
+                    X_train,
+                    y_train
+                )
+
+                preds = model.predict(
+                    X_test
+                )
+
+                acc = accuracy_score(
+                    y_test,
+                    preds
+                )
+
+                results.append(
+                    [
+                        name,
+                        acc
+                    ]
+                )
+
+                if acc > best_score:
+
+                    best_score = acc
+                    best_model = model
+                    best_name = name
+
+            res = pd.DataFrame(
+                results,
+                columns=[
+                    "Model",
+                    "Accuracy"
+                ]
+            )
+
+            st.dataframe(res)
+
+            st.success(
+                f"Best Model: {best_name}"
+            )
+
+# ---------------- Regression ----------------
+
+        else:
+
+            best_score = float("inf")
+
+            models = {
+                "Linear Regression": LinearRegression(),
+                "Random Forest": RandomForestRegressor(),
+                "Decision Tree": DecisionTreeRegressor()
+            }
+
+            for name,model in models.items():
+
+                model.fit(
+                    X_train,
+                    y_train
+                )
+
+                preds = model.predict(
+                    X_test
+                )
+
+                rmse = np.sqrt(
+                    mean_squared_error(
+                        y_test,
+                        preds
+                    )
+                )
+
+                results.append(
+                    [
+                        name,
+                        rmse
+                    ]
+                )
+
+                if rmse < best_score:
+
+                    best_score = rmse
+                    best_model = model
+                    best_name = name
+
+            res = pd.DataFrame(
+                results,
+                columns=[
+                    "Model",
+                    "RMSE"
+                ]
+            )
+
+            st.dataframe(res)
+
+            st.success(
+                f"Best Model: {best_name}"
+            )
+
+# =====================================================
+# UNSUPERVISED
+# =====================================================
+
+    else:
+
+        st.subheader("Unsupervised Learning")
+
+        data = df.select_dtypes(
+            include=np.number
+        )
 
         algorithm = st.selectbox(
-            "Select Clustering Algorithm",
+            "Clustering Algorithm",
             [
                 "KMeans",
                 "DBSCAN",
@@ -192,126 +344,74 @@ if file:
 
         if st.button("Run Clustering"):
 
-            with st.spinner("🤖 Running Clustering..."):
+            if algorithm == "KMeans":
 
-                if algorithm == "KMeans":
-
-                    model = KMeans(
-                        n_clusters=n_clusters,
-                        random_state=42
-                    )
-
-                    labels = model.fit_predict(
-                        unsup_data
-                    )
-
-                elif algorithm == "DBSCAN":
-
-                    model = DBSCAN()
-
-                    labels = model.fit_predict(
-                        unsup_data
-                    )
-
-                else:
-
-                    model = AgglomerativeClustering(
-                        n_clusters=n_clusters
-                    )
-
-                    labels = model.fit_predict(
-                        unsup_data
-                    )
-
-                df["Cluster"] = labels
-
-                st.success("✅ Clustering Completed")
-
-                st.write("Cluster Distribution")
-
-                st.dataframe(
-                    df["Cluster"].value_counts()
+                model = KMeans(
+                    n_clusters=n_clusters,
+                    random_state=42
                 )
 
-                # PCA Visualization
-
-                pca = PCA(n_components=2)
-
-                reduced = pca.fit_transform(
-                    unsup_data
+                labels = model.fit_predict(
+                    data
                 )
 
-                plot_df = pd.DataFrame(
-                    reduced,
-                    columns=["PC1","PC2"]
+            elif algorithm == "DBSCAN":
+
+                model = DBSCAN()
+
+                labels = model.fit_predict(
+                    data
                 )
 
-                plot_df["Cluster"] = labels
+            else:
 
-                fig = px.scatter(
-                    plot_df,
-                    x="PC1",
-                    y="PC2",
-                    color="Cluster",
-                    title="Cluster Visualization"
+                model = AgglomerativeClustering(
+                    n_clusters=n_clusters
                 )
 
-                st.plotly_chart(fig)
+                labels = model.fit_predict(
+                    data
+                )
 
-# =========================================================
-# BELOW THIS — YOUR ORIGINAL CODE CONTINUES UNCHANGED
-# =========================================================
+            df["Cluster"] = labels
 
-# ---------------- Model Setup ----------------
-    st.subheader("⚙️ Model Setup")
+            st.success("Clustering Completed")
 
-    target = st.selectbox("Target Column", df.columns)
+            st.dataframe(
+                df["Cluster"].value_counts()
+            )
 
-    df = df.dropna(subset=[target])
+            pca = PCA(
+                n_components=2
+            )
 
-    X = df.drop(columns=[target])
-    y = df[target]
+            reduced = pca.fit_transform(
+                data
+            )
 
-# ---------------- TASK ----------------
-    target_type = type_of_target(y)
+            plot_df = pd.DataFrame(
+                reduced,
+                columns=[
+                    "PC1",
+                    "PC2"
+                ]
+            )
 
-    if target_type in ["binary", "multiclass"]:
-        task = "Classification"
-    else:
-        task = "Regression"
+            plot_df["Cluster"] = labels
 
-    st.write(f"🎯 Task: {task}")
+            fig = px.scatter(
+                plot_df,
+                x="PC1",
+                y="PC2",
+                color="Cluster"
+            )
 
-# ---------------- Feature Selection ----------------
-    k = st.slider(
-        "Top K Features",
-        1,
-        X.shape[1],
-        min(5, X.shape[1])
-    )
+            st.plotly_chart(fig)
 
-    selector = SelectKBest(
-        f_classif if task=="Classification" else f_regression,
-        k=k
-    )
+else:
 
-    X_new = selector.fit_transform(X,y)
-
-    selected_features = X.columns[
-        selector.get_support()
-    ]
-
-    X = pd.DataFrame(
-        X_new,
-        columns=selected_features
-    )
-
-# ---------------- Split ----------------
-    X_train,X_test,y_train,y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42
-    )
-
-# (REST OF YOUR CODE REMAINS EXACTLY SAME)
+    st.markdown("""
+    <div class="upload-box">
+    Upload dataset to start
+    </div>
+    """, unsafe_allow_html=True)
