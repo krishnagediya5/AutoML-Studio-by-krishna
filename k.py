@@ -302,6 +302,24 @@ if file:
                 )
 
                 st.plotly_chart(fig_imp)
+                 st.subheader("🧑‍💻 User Input Prediction")
+
+            user_data = {}
+
+            for col in selected_features:
+                val = st.number_input(
+                    f"Enter value for {col}",
+                    value=0.0
+                )
+                user_data[col] = val
+
+            if st.button("Predict"):
+
+                input_df = pd.DataFrame([user_data])
+
+                prediction = best_model.predict(input_df)
+
+                st.success(f"Prediction: {prediction[0]}")
 
 # =========================================================
 # UNSUPERVISED
