@@ -427,6 +427,72 @@ if file:
             f"Best Model Selected: {best_model_name}"
         )
 
+    # ================= UNSUPERVISED =================
+
+    else:
+
+        data = df.select_dtypes(include=np.number)
+
+        scaler = StandardScaler()
+
+        data_scaled = scaler.fit_transform(data)
+
+        models = {
+            "KMeans": KMeans(n_clusters=3),
+            "Agglomerative": AgglomerativeClustering(n_clusters=3),
+            "Birch": Birch(n_clusters=3),
+            "DBSCAN": DBSCAN()
+        }
+
+        results = []
+        best_score = -1
+
+        progress = st.progress(0)
+
+        for i, (name, model) in enumerate(models.items()):
+
+            labels = model.fit_predict(data_scaled)
+
+            if len(set(labels)) > 1:
+
+                score = silhouette_score(
+                    data_scaled,
+                    labels
+                )
+
+            else:
+
+                score = -1
+
+            results.append([name, score])
+
+            progress.progress(
+                (i + 1) / len(models)
+            )
+
+            if score > best_score:
+
+                best_score = score
+                best_model_name = name
+                best_labels = labels
+
+        res = pd.DataFrame(
+            results,
+            columns=[
+                "Algorithm",
+                "Silhouette Score"
+            ]
+        )
+
+        st.dataframe(
+            res,
+            use_container_width=True
+        )
+
+        st.success(
+            f"Best Clustering Model: {best_model_name}"
+        )
+
 else:
 
     st.info(
