@@ -495,6 +495,36 @@ if file:
 
 else:
 
-    st.info(
-        "Upload dataset to start AutoML"
+    # ---------------- FRONT PAGE (USER HERO UI ONLY WHEN NO DATASET) ----------------
+
+    st.markdown("""
+    <div class="hero">
+    <h1>🚀 AutoML Studio</h1>
+    <h3>🔥 Build Machine Learning Models in Seconds</h3>
+    <p>Upload datasets, preprocess, train & predict — all in one place.</p>
+    <p>👉 No coding • No complexity • Just powerful AI</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    c1,c2,c3 = st.columns(3)
+
+    c1.markdown(
+        '<div class="card">⚡ Instant</div>',
+        unsafe_allow_html=True
     )
+
+    c2.markdown(
+        '<div class="card">🤖 8+ Models</div>',
+        unsafe_allow_html=True
+    )
+
+    c3.markdown(
+        '<div class="card">📊 Optimized</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.info("👈 Upload your dataset from the sidebar to start AutoML.")
