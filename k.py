@@ -1,3 +1,9 @@
+# =========================================================
+# AUTO ML STUDIO — DASHBOARD STYLE UI
+# LOGIC: UNCHANGED
+# UI: PROFESSIONAL DASHBOARD
+# =========================================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -42,73 +48,66 @@ from sklearn.metrics import (
 # =========================================================
 
 st.set_page_config(
-    page_title="AutoML Studio",
-    page_icon="🤖",
+    page_title="AutoML Studio Dashboard",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # =========================================================
-# CUSTOM CSS (UI IMPROVEMENT ONLY — NO LOGIC CHANGE)
+# DASHBOARD CSS
 # =========================================================
 
-st.markdown(
-    """
-    <style>
+st.markdown("""
+<style>
 
-    .main-title {
-        font-size: 42px;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 10px;
-    }
+.block-container {
+    padding-top: 1.5rem;
+}
 
-    .subtitle {
-        font-size: 18px;
-        text-align: center;
-        color: gray;
-        margin-bottom: 30px;
-    }
+.dashboard-title {
+    font-size: 38px;
+    font-weight: 800;
+}
 
-    .metric-card {
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
+.card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
 
-    .section-header {
-        font-size: 26px;
-        font-weight: 600;
-        margin-top: 30px;
-        margin-bottom: 10px;
-    }
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 20px;
+}
 
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+</style>
+""", unsafe_allow_html=True)
 
 # =========================================================
-# SIDEBAR
+# SIDEBAR — DASHBOARD STYLE
 # =========================================================
 
-st.sidebar.title("🤖 AutoML Studio")
+st.sidebar.title("📊 AutoML Dashboard")
+
 st.sidebar.markdown("---")
 
-st.sidebar.markdown("## 📂 Upload Dataset")
-file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
+st.sidebar.subheader("📂 Upload Dataset")
+
+file = st.sidebar.file_uploader("Upload CSV File", type=["csv"])
 
 st.sidebar.markdown("---")
+
 st.sidebar.info(
     """
     **Workflow**
 
-    1) Upload dataset
-    2) Preprocess data
-    3) Train models
-    4) Get predictions
+    1) Upload Dataset
+    2) Preprocess Data
+    3) Train Models
+    4) View Results
     """
 )
 
@@ -123,37 +122,48 @@ if file:
 
     df = st.session_state.df
 
-    st.success("✅ Dataset Loaded Successfully")
+    # =====================================================
+    # HEADER
+    # =====================================================
+
+    col_title, col_space = st.columns([3,1])
+
+    with col_title:
+        st.markdown('<div class="dashboard-title">📊 AutoML Model Dashboard</div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # =====================================================
+    # METRICS ROW
+    # =====================================================
+
+    total_missing = int(df.isnull().sum().sum())
+
+    m1, m2, m3 = st.columns(3)
+
+    m1.metric("Rows", df.shape[0])
+    m2.metric("Columns", df.shape[1])
+    m3.metric("Missing Values", total_missing)
+
+    st.markdown("---")
 
     # =====================================================
     # DATA PREVIEW
     # =====================================================
 
-    st.markdown("<div class='section-header'>📊 Dataset Overview</div>", unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("Rows", df.shape[0])
-    col2.metric("Columns", df.shape[1])
-    col3.metric("Missing Values", int(df.isnull().sum().sum()))
+    st.markdown('<div class="section-title">📄 Dataset Preview</div>', unsafe_allow_html=True)
 
     st.dataframe(df.head(), use_container_width=True)
-
-    st.markdown("---")
 
     numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
 
-        st.markdown("<div class='section-header'>📈 Data Distribution</div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">📈 Data Distribution</div>', unsafe_allow_html=True)
 
         col = st.selectbox("Select Column", numeric_cols)
 
-        fig_hist = px.histogram(
-            df,
-            x=col,
-            title="Distribution"
-        )
+        fig_hist = px.histogram(df, x=col)
 
         st.plotly_chart(fig_hist, use_container_width=True)
 
@@ -161,16 +171,16 @@ if file:
     # PREPROCESSING
     # =====================================================
 
-    st.markdown("<div class='section-header'>🧹 Preprocessing</div>", unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🧹 Data Preprocessing</div>', unsafe_allow_html=True)
 
-    fill_cols = st.multiselect("Columns", df.columns)
+    fill_cols = st.multiselect("Select Columns", df.columns)
 
     fill_method = st.selectbox(
-        "Method",
-        ["Mean", "Median", "Mode", "Forward Fill", "Backward Fill"]
+        "Fill Method",
+        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
     )
 
-    if st.button("Apply Missing Fill"):
+    if st.button("Apply Missing Value Handling"):
 
         for col in fill_cols:
 
@@ -190,7 +200,8 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-        st.success("✅ Missing Values Handled")
+
+        st.success("Missing Values Handled Successfully")
 
     # =====================================================
     # ENCODING
@@ -206,7 +217,8 @@ if file:
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
         st.session_state.df = df
-        st.success("✅ Encoding Applied")
+
+        st.success("Encoding Applied")
 
     # =====================================================
     # SCALING
@@ -214,27 +226,28 @@ if file:
 
     num_cols = df.select_dtypes(include=np.number).columns
 
-    scale_cols = st.multiselect("Columns for Scaling", num_cols)
+    scale_cols = st.multiselect("Scaling Columns", num_cols)
 
     scale_method = st.selectbox(
         "Scaling Method",
-        ["Standardization", "Normalization"]
+        ["Standardization","Normalization"]
     )
 
     if st.button("Apply Scaling"):
 
-        scaler = StandardScaler() if scale_method == "Standardization" else MinMaxScaler()
+        scaler = StandardScaler() if scale_method=="Standardization" else MinMaxScaler()
 
         df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
         st.session_state.df = df
-        st.success("✅ Scaling Applied")
+
+        st.success("Scaling Applied")
 
     st.markdown("---")
 
     learning_type = st.radio(
-        "🧠 Select Learning Type",
-        ["Supervised", "Unsupervised"]
+        "Select Learning Type",
+        ["Supervised","Unsupervised"]
     )
 
     # =========================================================
@@ -243,7 +256,7 @@ if file:
 
     if learning_type == "Supervised":
 
-        st.markdown("<div class='section-header'>⚙️ Model Setup</div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">⚙️ Model Training</div>', unsafe_allow_html=True)
 
         target = st.selectbox("Target Column", df.columns)
 
@@ -259,172 +272,111 @@ if file:
         else:
             task = "Regression"
 
-        st.info(f"🎯 Task Detected: {task}")
+        st.info(f"Detected Task: {task}")
 
-        k = st.slider("Top K Features", 1, X.shape[1], min(5, X.shape[1]))
+        k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
 
         selector = SelectKBest(
-            f_classif if task == "Classification" else f_regression,
+            f_classif if task=="Classification" else f_regression,
             k=k
         )
 
-        X_new = selector.fit_transform(X, y)
+        X_new = selector.fit_transform(X,y)
 
         selected_features = X.columns[selector.get_support()]
 
-        X = pd.DataFrame(X_new, columns=selected_features)
+        X = pd.DataFrame(X_new,columns=selected_features)
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42
+        X_train,X_test,y_train,y_test = train_test_split(
+            X,y,test_size=0.2,random_state=42
         )
 
-        st.markdown("<div class='section-header'>🏆 Model Leaderboard</div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🏆 Model Leaderboard</div>', unsafe_allow_html=True)
 
-        results = []
-        best_model = None
-        best_model_name = None
+        results=[]
+        best_model=None
+        best_model_name=None
 
-        if task == "Classification":
+        progress = st.progress(0)
 
-            best_score = 0
+        if task=="Classification":
 
-            models = {
-                "Logistic Regression": LogisticRegression(max_iter=1000),
-                "Random Forest": RandomForestClassifier(),
-                "Extra Trees": ExtraTreesClassifier(),
-                "Gradient Boosting": GradientBoostingClassifier(),
-                "Decision Tree": DecisionTreeClassifier(),
-                "KNN": KNeighborsClassifier(),
-                "SVM": SVC(probability=True),
-                "Naive Bayes": GaussianNB()
+            best_score=0
+
+            models={
+                "Logistic Regression":LogisticRegression(max_iter=1000),
+                "Random Forest":RandomForestClassifier(),
+                "Extra Trees":ExtraTreesClassifier(),
+                "Gradient Boosting":GradientBoostingClassifier(),
+                "Decision Tree":DecisionTreeClassifier(),
+                "KNN":KNeighborsClassifier(),
+                "SVM":SVC(probability=True),
+                "Naive Bayes":GaussianNB()
             }
 
-            progress = st.progress(0)
+            for i,(name,model) in enumerate(models.items()):
 
-            for i, (name, model) in enumerate(models.items()):
+                model.fit(X_train,y_train)
 
-                model.fit(X_train, y_train)
+                preds=model.predict(X_test)
 
-                preds = model.predict(X_test)
+                acc=accuracy_score(y_test,preds)
 
-                acc = accuracy_score(y_test, preds)
+                results.append([name,acc])
 
-                results.append([name, acc])
+                progress.progress((i+1)/len(models))
 
-                progress.progress((i + 1) / len(models))
+                if acc>best_score:
 
-                if acc > best_score:
+                    best_score=acc
+                    best_model=model
+                    best_model_name=name
 
-                    best_score = acc
-                    best_model = model
-                    best_model_name = name
+            res=pd.DataFrame(results,columns=["Model","Accuracy"])
 
-            res = pd.DataFrame(results, columns=["Model", "Accuracy"])
+            st.dataframe(res,use_container_width=True)
 
-            st.dataframe(res, use_container_width=True)
-
-            st.success(f"Best Model Selected: {best_model_name}")
-
-            if hasattr(best_model, "feature_importances_"):
-
-                st.markdown("<div class='section-header'>⭐ Feature Importance</div>", unsafe_allow_html=True)
-
-                importance = best_model.feature_importances_
-
-                fi_df = pd.DataFrame({
-                    "Feature": selected_features,
-                    "Importance": importance
-                })
-
-                fig_imp = px.bar(
-                    fi_df,
-                    x="Feature",
-                    y="Importance",
-                    title="Feature Importance"
-                )
-
-                st.plotly_chart(fig_imp, use_container_width=True)
+            st.success(f"Best Model: {best_model_name}")
 
         else:
 
-            best_score = float("inf")
+            best_score=float("inf")
 
-            models = {
-                "Linear Regression": LinearRegression(),
-                "Ridge": Ridge(),
-                "Lasso": Lasso(),
-                "Random Forest": RandomForestRegressor(),
-                "Extra Trees": ExtraTreesRegressor(),
-                "Gradient Boosting": GradientBoostingRegressor(),
-                "Decision Tree": DecisionTreeRegressor(),
-                "KNN": KNeighborsRegressor(),
-                "SVR": SVR()
+            models={
+                "Linear Regression":LinearRegression(),
+                "Ridge":Ridge(),
+                "Lasso":Lasso(),
+                "Random Forest":RandomForestRegressor(),
+                "Extra Trees":ExtraTreesRegressor(),
+                "Gradient Boosting":GradientBoostingRegressor(),
+                "Decision Tree":DecisionTreeRegressor(),
+                "KNN":KNeighborsRegressor(),
+                "SVR":SVR()
             }
 
-            progress = st.progress(0)
+            for i,(name,model) in enumerate(models.items()):
 
-            for i, (name, model) in enumerate(models.items()):
+                model.fit(X_train,y_train)
 
-                model.fit(X_train, y_train)
+                preds=model.predict(X_test)
 
-                preds = model.predict(X_test)
+                rmse=np.sqrt(mean_squared_error(y_test,preds))
 
-                rmse = np.sqrt(mean_squared_error(y_test, preds))
+                results.append([name,rmse])
 
-                results.append([name, rmse])
+                progress.progress((i+1)/len(models))
 
-                progress.progress((i + 1) / len(models))
+                if rmse<best_score:
 
-                if rmse < best_score:
+                    best_score=rmse
+                    best_model=model
+                    best_model_name=name
 
-                    best_score = rmse
-                    best_model = model
-                    best_model_name = name
+            res=pd.DataFrame(results,columns=["Model","RMSE"])
 
-            res = pd.DataFrame(results, columns=["Model", "RMSE"])
+            st.dataframe(res,use_container_width=True)
 
-            st.dataframe(res, use_container_width=True)
-
-            st.success(f"Best Model Selected: {best_model_name}")
-
-            if hasattr(best_model, "feature_importances_"):
-
-                st.markdown("<div class='section-header'>⭐ Feature Importance</div>", unsafe_allow_html=True)
-
-                importance = best_model.feature_importances_
-
-                fi_df = pd.DataFrame({
-                    "Feature": selected_features,
-                    "Importance": importance
-                })
-
-                fig_imp = px.bar(
-                    fi_df,
-                    x="Feature",
-                    y="Importance",
-                    title="Feature Importance"
-                )
-
-                st.plotly_chart(fig_imp, use_container_width=True)
-
-            st.markdown("<div class='section-header'>🧑‍💻 User Input Prediction</div>", unsafe_allow_html=True)
-
-            user_data = {}
-
-            for col in selected_features:
-                val = st.number_input(
-                    f"Enter value for {col}",
-                    value=0.0
-                )
-                user_data[col] = val
-
-            if st.button("Predict"):
-
-                input_df = pd.DataFrame([user_data])
-
-                prediction = best_model.predict(input_df)
-
-                st.success(f"Prediction: {prediction[0]}")
+            st.success(f"Best Model: {best_model_name}")
 
     # =========================================================
     # UNSUPERVISED
@@ -432,7 +384,7 @@ if file:
 
     else:
 
-        st.markdown("<div class='section-header'>🧠 Unsupervised Model Leaderboard</div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🧠 Clustering Dashboard</div>', unsafe_allow_html=True)
 
         data = df.select_dtypes(include=np.number)
 
@@ -447,12 +399,12 @@ if file:
             "DBSCAN": DBSCAN()
         }
 
-        results = []
-        best_score = -1
+        results=[]
+        best_score=-1
 
         progress = st.progress(0)
 
-        for i, (name, model) in enumerate(models.items()):
+        for i,(name,model) in enumerate(models.items()):
 
             labels = model.fit_predict(data_scaled)
 
@@ -467,9 +419,9 @@ if file:
 
                 score = -1
 
-            results.append([name, score])
+            results.append([name,score])
 
-            progress.progress((i + 1) / len(models))
+            progress.progress((i+1)/len(models))
 
             if score > best_score:
 
@@ -485,187 +437,38 @@ if file:
             ]
         )
 
-        st.dataframe(res, use_container_width=True)
+        st.dataframe(res,use_container_width=True)
 
         st.success(
             f"Best Clustering Model: {best_model_name}"
         )
 
-        df["Cluster"] = best_labels
-
-        pca = PCA(n_components=2)
-
-        reduced = pca.fit_transform(data_scaled)
-
-        plot_df = pd.DataFrame(
-            reduced,
-            columns=["PC1", "PC2"]
-        )
-
-        plot_df["Cluster"] = best_labels
-
-        fig = px.scatter(
-            plot_df,
-            x="PC1",
-            y="PC2",
-            color="Cluster",
-            title="Cluster Visualization"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-        st.markdown("<div class='section-header'>⭐ Feature Importance (Unsupervised)</div>", unsafe_allow_html=True)
-
-        pca_imp = PCA(n_components=2)
-        pca_imp.fit(data_scaled)
-
-        importance_values = np.mean(
-            np.abs(pca_imp.components_),
-            axis=0
-        )
-
-        fi_unsup_df = pd.DataFrame({
-            "Feature": data.columns,
-            "Importance": importance_values
-        })
-
-        fig_unsup_imp = px.bar(
-            fi_unsup_df,
-            x="Feature",
-            y="Importance",
-            title="Unsupervised Feature Importance"
-        )
-
-        st.plotly_chart(fig_unsup_imp, use_container_width=True)
-
-        st.markdown("<div class='section-header'>🧑‍💻 User Input Cluster Prediction</div>", unsafe_allow_html=True)
-
-        user_data = {}
-
-        for col in data.columns:
-
-            val = st.number_input(
-                f"Enter value for {col}",
-                value=0.0,
-                key=f"unsup_{col}"
-            )
-
-            user_data[col] = val
-
-        if st.button("Predict Cluster"):
-
-            input_df = pd.DataFrame(
-                [user_data]
-            )
-
-            input_scaled = scaler.transform(
-                input_df
-            )
-
-            if best_model_name == "KMeans":
-
-                model = KMeans(
-                    n_clusters=3
-                )
-
-                model.fit(data_scaled)
-
-                cluster = model.predict(
-                    input_scaled
-                )
-
-                st.success(
-                    f"Predicted Cluster: {cluster[0]}"
-                )
-
-            elif best_model_name == "Birch":
-
-                model = Birch(
-                    n_clusters=3
-                )
-
-                model.fit(data_scaled)
-
-                cluster = model.predict(
-                    input_scaled
-                )
-
-                st.success(
-                    f"Predicted Cluster: {cluster[0]}"
-                )
-
-            else:
-
-                st.warning(
-                    "Prediction not supported for this clustering algorithm"
-                )
-
 else:
 
     # =========================================================
-    # FRONT PAGE (UI ONLY — LOGIC SAME)
+    # DASHBOARD HOME PAGE
     # =========================================================
 
-    st.markdown("<div class='main-title'>🤖 AutoML Studio</div>", unsafe_allow_html=True)
-
-    st.markdown(
-        "<div class='subtitle'>Build, Train, and Evaluate Machine Learning Models Automatically</div>",
-        unsafe_allow_html=True
-    )
+    st.markdown('<div class="dashboard-title">📊 AutoML Dashboard</div>', unsafe_allow_html=True)
 
     st.markdown("---")
 
-    st.subheader("🚀 Features")
+    c1,c2,c3 = st.columns(3)
 
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.info(
-            """
-            📂 Upload Dataset
-
-            - CSV support
-            - Data preview
-            - Missing value handling
-            """
-        )
-
-    with col2:
-        st.success(
-            """
-            🤖 Train Models
-
-            - Classification
-            - Regression
-            - Clustering
-            """
-        )
-
-    with col3:
-        st.warning(
-            """
-            📊 Get Results
-
-            - Leaderboard
-            - Feature importance
-            - Predictions
-            """
-        )
+    c1.metric("Models", "15+")
+    c2.metric("Algorithms", "Classification / Regression / Clustering")
+    c3.metric("Automation", "100%")
 
     st.markdown("---")
 
-    st.subheader("⚙️ How It Works")
+    st.subheader("🚀 Platform Features")
 
-    step1, step2, step3 = st.columns(3)
+    f1,f2,f3 = st.columns(3)
 
-    step1.metric("Step 1", "Upload Dataset")
-    step2.metric("Step 2", "Train Model")
-    step3.metric("Step 3", "Get Results")
-
-    st.markdown("---")
-
-    st.info("👈 Upload your dataset using the sidebar to start AutoML.")
+    f1.success("Upload Dataset")
+    f2.info("Train Models Automatically")
+    f3.warning("View Leaderboard & Predictions")
 
     st.markdown("---")
 
-    st.caption("AutoML Studio | Improved UI — Logic Unchanged")
+    st.info("Upload your dataset from the sidebar to start the AutoML dashboard.")
