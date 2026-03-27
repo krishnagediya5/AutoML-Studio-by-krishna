@@ -358,7 +358,7 @@ if file:
             st.success(f"Best Model Selected: {best_model_name}")
 
             # ---------------- FEATURE IMPORTANCE (SUPERVISED) ----------------
-            if hasattr(best_model, "feature_importances_"):
+        if hasattr(best_model, "feature_importances_"):
 
                 st.subheader("⭐ Feature Importance")
 
