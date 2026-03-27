@@ -143,7 +143,6 @@ file = st.sidebar.file_uploader(
 # ----------------------------------------------------
 # MAIN
 # ----------------------------------------------------
-
 if file:
 
     if "df" not in st.session_state:
@@ -151,35 +150,26 @@ if file:
 
     df = st.session_state.df
 
-    st.success("Dataset Loaded Successfully")
+    st.success("✅ Dataset Loaded Successfully")
 
-    # KPI METRICS
-
-    c1, c2, c3 = st.columns(3)
-
-    c1.metric("Rows", df.shape[0])
-    c2.metric("Columns", df.shape[1])
-    c3.metric("Missing Values", df.isnull().sum().sum())
-
-    st.subheader("Dataset Preview")
-
+    st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
-    numeric_cols = df.select_dtypes(
-        include=np.number
-    ).columns
+    col1, col2 = st.columns(2)
+    col1.write(f"📐 Shape: {df.shape}")
+    col2.write("❗ Missing Values")
+    col2.dataframe(df.isnull().sum().to_frame("Count"))
+
+    numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
+        col = st.selectbox("📈 Distribution Column", numeric_cols)
+        st.plotly_chart(px.histogram(df, x=col))
 
-        col = st.selectbox(
-            "Distribution Column",
-            numeric_cols
-        )
 
-        st.plotly_chart(
-            px.histogram(df, x=col),
-            use_container_width=True
-        )
+
+    
+    
 
     # ---------------- Preprocessing ----------------
 
