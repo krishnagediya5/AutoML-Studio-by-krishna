@@ -439,7 +439,7 @@ if file:
         user_data = {}
 
         for col in selected_features:
-             val = st.number_input(
+            val = st.number_input(
                     f"Enter value for {col}",
                     value=0.0
                 )
