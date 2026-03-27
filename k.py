@@ -443,7 +443,7 @@ if file:
                     f"Enter value for {col}",
                     value=0.0
                 )
-                user_data[col] = val
+            user_data[col] = val
 
         if st.button("Predict"):
 
