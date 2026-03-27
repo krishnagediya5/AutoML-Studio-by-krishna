@@ -42,13 +42,13 @@ from sklearn.metrics import (
 # ----------------------------------------------------
 
 st.set_page_config(
-    page_title="AutoML Studio",
-    page_icon="🚀",
+    page_title="AutoML Studio Enterprise",
+    page_icon="🏢",
     layout="wide"
 )
 
 # ----------------------------------------------------
-# SaaS DASHBOARD UI
+# ENTERPRISE UI THEME
 # ----------------------------------------------------
 
 st.markdown("""
@@ -62,38 +62,52 @@ body {
     padding-top: 1rem;
 }
 
-.header-bar {
-    background: linear-gradient(90deg,#2563eb,#7c3aed);
+/* Header */
+
+.enterprise-header {
+    background: linear-gradient(90deg,#0ea5e9,#6366f1);
     padding: 18px;
     border-radius: 10px;
     margin-bottom: 20px;
 }
 
 .header-title {
-    font-size: 34px;
+    font-size: 32px;
     font-weight: bold;
     color: white;
 }
+
+.header-subtitle {
+    font-size: 15px;
+    color: #e2e8f0;
+}
+
+/* Cards */
 
 .metric-card {
     background: #1e293b;
     padding: 18px;
     border-radius: 12px;
-    text-align: center;
     color: white;
+    text-align: center;
     box-shadow: 0px 4px 12px rgba(0,0,0,0.4);
 }
 
-.sidebar .sidebar-content {
-    background-color: #020617;
-}
+/* Buttons */
 
 .stButton>button {
-    background: linear-gradient(90deg,#2563eb,#22c55e);
+    background: linear-gradient(90deg,#0ea5e9,#22c55e);
     color: white;
     border-radius: 8px;
     height: 3em;
     font-weight: bold;
+    border: none;
+}
+
+/* Sidebar */
+
+.sidebar .sidebar-content {
+    background-color: #020617;
 }
 
 </style>
@@ -104,9 +118,12 @@ body {
 # ----------------------------------------------------
 
 st.markdown("""
-<div class="header-bar">
+<div class="enterprise-header">
 <div class="header-title">
-🚀 AutoML Studio — SaaS Dashboard
+🏢 AutoML Studio — Enterprise Dashboard
+</div>
+<div class="header-subtitle">
+Train • Compare • Deploy Machine Learning Models
 </div>
 </div>
 """, unsafe_allow_html=True)
@@ -135,9 +152,7 @@ if file:
 
     st.success("Dataset Loaded Successfully")
 
-    # ----------------------------------------------------
     # KPI METRICS
-    # ----------------------------------------------------
 
     c1, c2, c3 = st.columns(3)
 
@@ -256,7 +271,6 @@ if file:
         )
 
         st.session_state.df = df
-
         st.success("Scaling Applied")
 
     learning_type = st.radio(
@@ -267,154 +281,6 @@ if file:
         ]
     )
 
-    # ----------------------------------------------------
-    # SUPERVISED
-    # ----------------------------------------------------
-
-    if learning_type == "Supervised":
-
-        st.subheader("Model Setup")
-
-        target = st.selectbox(
-            "Target Column",
-            df.columns
-        )
-
-        df = df.dropna(
-            subset=[target]
-        )
-
-        X = df.drop(
-            columns=[target]
-        )
-
-        y = df[target]
-
-        target_type = type_of_target(
-            y
-        )
-
-        if target_type in [
-            "binary",
-            "multiclass"
-        ]:
-
-            task = "Classification"
-
-        else:
-
-            task = "Regression"
-
-        st.write(
-            f"Task: {task}"
-        )
-
-        k = st.slider(
-            "Top K Features",
-            1,
-            X.shape[1],
-            min(
-                5,
-                X.shape[1]
-            )
-        )
-
-        selector = SelectKBest(
-            f_classif if task=="Classification" else f_regression,
-            k=k
-        )
-
-        X_new = selector.fit_transform(
-            X,
-            y
-        )
-
-        selected_features = X.columns[
-            selector.get_support()
-        ]
-
-        X = pd.DataFrame(
-            X_new,
-            columns=selected_features
-        )
-
-        X_train,X_test,y_train,y_test = train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42
-        )
-
-        st.subheader(
-            "Model Leaderboard"
-        )
-
-        results=[]
-        best_model=None
-        best_model_name=None
-
-        if task=="Classification":
-
-            best_score=0
-
-            models={
-
-                "Logistic Regression":LogisticRegression(max_iter=1000),
-                "Random Forest":RandomForestClassifier(),
-                "Extra Trees":ExtraTreesClassifier(),
-                "Gradient Boosting":GradientBoostingClassifier(),
-                "Decision Tree":DecisionTreeClassifier(),
-                "KNN":KNeighborsClassifier(),
-                "SVM":SVC(probability=True),
-                "Naive Bayes":GaussianNB()
-
-            }
-
-            for name,model in models.items():
-
-                model.fit(
-                    X_train,
-                    y_train
-                )
-
-                preds=model.predict(
-                    X_test
-                )
-
-                acc=accuracy_score(
-                    y_test,
-                    preds
-                )
-
-                results.append(
-                    [name,acc]
-                )
-
-                if acc>best_score:
-
-                    best_score=acc
-                    best_model=model
-                    best_model_name=name
-
-            res=pd.DataFrame(
-                results,
-                columns=[
-                    "Model",
-                    "Accuracy"
-                ]
-            )
-
-            st.dataframe(
-                res,
-                use_container_width=True
-            )
-
-            st.success(
-                f"Best Model Selected: {best_model_name}"
-            )
-
 else:
 
-    st.info(
-        "Upload dataset to start AutoML"
-    )
+    st.info("Upload dataset to start AutoML")
