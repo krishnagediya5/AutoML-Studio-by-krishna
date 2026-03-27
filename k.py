@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pickle
 import plotly.express as px
 import plotly.graph_objects as go
@@ -39,112 +37,13 @@ from sklearn.metrics import (
     mean_squared_error
 )
 
-# ----------------------------------------------------
-# PAGE CONFIG
-# ----------------------------------------------------
+st.set_page_config(page_title="AutoML Studio", layout="wide")
 
-st.set_page_config(
-    page_title="AutoML Studio",
-    page_icon="🚀",
-    layout="wide"
-)
+# SIDEBAR 
+st.sidebar.markdown("## 📂 Upload Dataset")
+file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
-# ----------------------------------------------------
-# ENTERPRISE UI + HERO SECTION
-# ----------------------------------------------------
-
-st.markdown("""
-<style>
-
-.main {
-    background-color: #0f172a;
-}
-
-.hero {
-    background: linear-gradient(90deg,#0ea5e9,#6366f1);
-    padding: 40px;
-    border-radius: 18px;
-    margin-bottom: 25px;
-}
-
-.hero-title {
-    font-size: 48px;
-    font-weight: 800;
-    color: white;
-}
-
-.hero-subtitle {
-    font-size: 18px;
-    color: #e2e8f0;
-    margin-top: 10px;
-}
-
-.feature-box {
-    background: rgba(255,255,255,0.12);
-    padding: 16px;
-    border-radius: 12px;
-    text-align: center;
-    color: white;
-    font-weight: 600;
-}
-
-.metric-card {
-    background: #1e293b;
-    padding: 18px;
-    border-radius: 12px;
-    color: white;
-    text-align: center;
-}
-
-.stButton>button {
-    background: linear-gradient(90deg,#0ea5e9,#22c55e);
-    color: white;
-    border-radius: 8px;
-    font-weight: bold;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# ----------------------------------------------------
-# HERO
-# ----------------------------------------------------
-
-st.markdown("""
-<div class="hero">
-
-<div class="hero-title">
-🚀 AutoML Studio
-</div>
-
-<div class="hero-subtitle">
-Enterprise Auto Machine Learning Platform — Train, Compare and Deploy Models in Minutes
-</div>
-
-</div>
-""", unsafe_allow_html=True)
-
-f1, f2, f3, f4 = st.columns(4)
-
-f1.markdown('<div class="feature-box">⚡ Fast Training</div>', unsafe_allow_html=True)
-f2.markdown('<div class="feature-box">🤖 Auto Model Selection</div>', unsafe_allow_html=True)
-f3.markdown('<div class="feature-box">📊 Smart Analytics</div>', unsafe_allow_html=True)
-f4.markdown('<div class="feature-box">☁️ Cloud Ready</div>', unsafe_allow_html=True)
-
-# ----------------------------------------------------
-# SIDEBAR
-# ----------------------------------------------------
-
-st.sidebar.title("AutoML Studio")
-
-file = st.sidebar.file_uploader(
-    "Upload CSV Dataset",
-    type=["csv"]
-)
-
-# ----------------------------------------------------
-# MAIN
-# ----------------------------------------------------
+# MAIN 
 if file:
 
     if "df" not in st.session_state:
@@ -168,29 +67,14 @@ if file:
         col = st.selectbox("📈 Distribution Column", numeric_cols)
         st.plotly_chart(px.histogram(df, x=col))
 
-
-
-    
-    
-
     # ---------------- Preprocessing ----------------
+    st.subheader("🧹 Preprocessing")
 
-    st.subheader("Preprocessing")
-
-    fill_cols = st.multiselect(
-        "Columns",
-        df.columns
-    )
+    fill_cols = st.multiselect("Columns", df.columns)
 
     fill_method = st.selectbox(
         "Method",
-        [
-            "Mean",
-            "Median",
-            "Mode",
-            "Forward Fill",
-            "Backward Fill"
-        ]
+        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
     )
 
     if st.button("Apply Missing Fill"):
@@ -213,67 +97,46 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-        st.success("Missing Values Handled")
+        st.success("✅ Missing Values Handled")
 
     # ---------------- Encoding ----------------
+    cat_cols = df.select_dtypes(include="object").columns
 
-    cat_cols = df.select_dtypes(
-        include="object"
-    ).columns
-
-    encode_cols = st.multiselect(
-        "Categorical Columns",
-        cat_cols
-    )
+    encode_cols = st.multiselect("Categorical Columns", cat_cols)
 
     if st.button("Apply Encoding"):
 
         for col in encode_cols:
-            df[col] = LabelEncoder().fit_transform(
-                df[col].astype(str)
-            )
+            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
         st.session_state.df = df
-        st.success("Encoding Applied")
+        st.success("✅ Encoding Applied")
 
     # ---------------- Scaling ----------------
+    num_cols = df.select_dtypes(include=np.number).columns
 
-    num_cols = df.select_dtypes(
-        include=np.number
-    ).columns
-
-    scale_cols = st.multiselect(
-        "Columns for Scaling",
-        num_cols
-    )
+    scale_cols = st.multiselect("Columns for Scaling", num_cols)
 
     scale_method = st.selectbox(
         "Scaling Method",
-        [
-            "Standardization",
-            "Normalization"
-        ]
+        ["Standardization","Normalization"]
     )
 
     if st.button("Apply Scaling"):
 
         scaler = StandardScaler() if scale_method=="Standardization" else MinMaxScaler()
 
-        df[scale_cols] = scaler.fit_transform(
-            df[scale_cols]
-        )
+        df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
         st.session_state.df = df
-        st.success("Scaling Applied")
+        st.success("✅ Scaling Applied")
 
     learning_type = st.radio(
-        "Select Learning Type",
-        [
-            "Supervised",
-            "Unsupervised"
-        ]
+        "🧠 Select Learning Type",
+        ["Supervised","Unsupervised"]
     )
-    # =========================================================
+
+# =========================================================
 # SUPERVISED
 # =========================================================
 
@@ -358,7 +221,7 @@ if file:
             st.success(f"Best Model Selected: {best_model_name}")
 
             # ---------------- FEATURE IMPORTANCE (SUPERVISED) ----------------
-        if hasattr(best_model, "feature_importances_"):
+            if hasattr(best_model, "feature_importances_"):
 
                 st.subheader("⭐ Feature Importance")
 
@@ -417,37 +280,37 @@ if file:
             st.success(f"Best Model Selected: {best_model_name}")
 
             # ---------------- FEATURE IMPORTANCE (SUPERVISED REGRESSION) ----------------
-        if hasattr(best_model, "feature_importances_"):
+            if hasattr(best_model, "feature_importances_"):
 
-            st.subheader("⭐ Feature Importance")
+                st.subheader("⭐ Feature Importance")
 
-            importance = best_model.feature_importances_
+                importance = best_model.feature_importances_
 
-            fi_df = pd.DataFrame({
+                fi_df = pd.DataFrame({
                     "Feature": selected_features,
                     "Importance": importance
                 })
 
-            fig_imp = px.bar(
+                fig_imp = px.bar(
                     fi_df,
                     x="Feature",
                     y="Importance",
                     title="Feature Importance"
                 )
 
-            st.plotly_chart(fig_imp)
-        st.subheader("🧑‍💻 User Input Prediction")
+                st.plotly_chart(fig_imp)
+            st.subheader("🧑‍💻 User Input Prediction")
 
-        user_data = {}
+            user_data = {}
 
-        for col in selected_features:
-            val = st.number_input(
+            for col in selected_features:
+                val = st.number_input(
                     f"Enter value for {col}",
                     value=0.0
                 )
-            user_data[col] = val
+                user_data[col] = val
 
-        if st.button("Predict"):
+            if st.button("Predict"):
 
                 input_df = pd.DataFrame([user_data])
 
