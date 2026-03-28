@@ -44,7 +44,7 @@ st.set_page_config(
 )
 
 # ----------------------------------------------------
-# PREMIUM HERO UI (REPLACE OLD HERO)
+# UI STYLE (ADDED ONLY)
 # ----------------------------------------------------
 
 st.markdown("""
@@ -66,43 +66,67 @@ st.markdown("""
 .hero-subtitle {
     font-size: 18px;
     color: #e2e8f0;
-    margin-top: 8px;
 }
 
-.section-title {
-    font-size: 24px;
+.card {
+    background: #111827;
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+}
+
+.card-title {
+    font-size: 16px;
+    color: #9ca3af;
+}
+
+.card-value {
+    font-size: 28px;
     font-weight: 700;
-    margin-top: 25px;
+    color: white;
+}
+
+.feature-card {
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    padding: 18px;
+    border-radius: 14px;
+    color: white;
+    text-align: center;
+    font-weight: 600;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+# ----------------------------------------------------
+# HERO
+# ----------------------------------------------------
+
 st.markdown("""
 <div class="hero">
-
 <div class="hero-title">
 🚀 AutoML Studio
 </div>
-
 <div class="hero-subtitle">
 Train, Compare, and Deploy Models — No Code Required
 </div>
-
 </div>
 """, unsafe_allow_html=True)
 
-
+# ----------------------------------------------------
+# FEATURE CARDS (ADDED ONLY)
+# ----------------------------------------------------
 
 f1, f2, f3, f4 = st.columns(4)
 
-f1.markdown('<div class="feature-box">⚡ Fast Training</div>', unsafe_allow_html=True)
-f2.markdown('<div class="feature-box">🤖 Auto Model Selection</div>', unsafe_allow_html=True)
-f3.markdown('<div class="feature-box">📊 Smart Analytics</div>', unsafe_allow_html=True)
-f4.markdown('<div class="feature-box">☁️ Cloud Ready</div>', unsafe_allow_html=True)
+f1.markdown('<div class="feature-card">⚡ Fast Training</div>', unsafe_allow_html=True)
+f2.markdown('<div class="feature-card">🤖 Auto Model Selection</div>', unsafe_allow_html=True)
+f3.markdown('<div class="feature-card">📊 Smart Analytics</div>', unsafe_allow_html=True)
+f4.markdown('<div class="feature-card">☁️ Cloud Ready</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# ORIGINAL APP (UNCHANGED)
+# ORIGINAL APP STARTS
 # ----------------------------------------------------
 
 st.sidebar.markdown("## 📂 Upload Dataset")
@@ -121,6 +145,42 @@ if file:
 
     st.success("✅ Dataset Loaded Successfully")
 
+    # ----------------------------------------------------
+    # DASHBOARD CARDS (ADDED ONLY)
+    # ----------------------------------------------------
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.markdown(f"""
+    <div class="card">
+    <div class="card-title">Rows</div>
+    <div class="card-value">{df.shape[0]}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    c2.markdown(f"""
+    <div class="card">
+    <div class="card-title">Columns</div>
+    <div class="card-value">{df.shape[1]}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    missing = df.isnull().sum().sum()
+
+    c3.markdown(f"""
+    <div class="card">
+    <div class="card-title">Missing Values</div>
+    <div class="card-value">{missing}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    c4.markdown(f"""
+    <div class="card">
+    <div class="card-title">Features</div>
+    <div class="card-value">{len(df.columns)}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
@@ -129,7 +189,6 @@ if file:
     col1.write(f"📐 Shape: {df.shape}")
 
     col2.write("❗ Missing Values")
-
     col2.dataframe(
         df.isnull().sum().to_frame("Count")
     )
