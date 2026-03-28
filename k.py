@@ -241,6 +241,10 @@ if file:
 
         X = df.drop(columns=[target])
         y = df[target]
+        
+    if X.shape[1] == 0:
+        st.error("No features available after preprocessing.")
+        st.stop()
 
         target_type = type_of_target(y)
 
@@ -251,7 +255,14 @@ if file:
 
         st.write(f"🎯 Task: {task}")
 
-        k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
+        max_features = max(1, X.shape[1])
+
+            k = st.slider(
+                "Top K Features",
+                min_value=1,
+                max_value=max_features,
+                value=min(5, max_features)
+            )
 
         selector = SelectKBest(
             f_classif if task=="Classification" else f_regression,
