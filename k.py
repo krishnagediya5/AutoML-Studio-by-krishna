@@ -91,27 +91,7 @@ Train, Compare, and Deploy Models — No Code Required
 
 </div>
 """, unsafe_allow_html=True)
-st.markdown("""
-<div class="hero">
 
-<div class="hero-title">
-AutoML Studio
-</div>
-
-<div class="hero-subtitle">
-Train, Compare, and Deploy Models — No Code Required
-</div>
-
-<div class="hero-divider"></div>
-
-</div>
-""", unsafe_allow_html=True)
-st.markdown("""
-<div class="hero">
-
-<div class="hero-title">
-What if building Machine Learning models required ZERO coding?
-</div>
 
 <div class="hero-subtitle">
 Upload your dataset and let AutoML Studio automatically train, compare, and select the best model.
