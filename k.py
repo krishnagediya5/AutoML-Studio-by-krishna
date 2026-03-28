@@ -50,6 +50,15 @@ st.set_page_config(
 st.markdown("""
 <style>
 
+.feature-box {
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    padding: 16px;
+    border-radius: 12px;
+    color: white;
+    text-align: center;
+    font-weight: 600;
+}
+
 .hero {
     background: linear-gradient(135deg,#2563eb,#7c3aed);
     padding: 36px;
