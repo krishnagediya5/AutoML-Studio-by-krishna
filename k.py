@@ -93,12 +93,6 @@ Train, Compare, and Deploy Models — No Code Required
 """, unsafe_allow_html=True)
 
 
-<div class="hero-subtitle">
-Upload your dataset and let AutoML Studio automatically train, compare, and select the best model.
-</div>
-
-</div>
-""", unsafe_allow_html=True)
 
 f1, f2, f3, f4 = st.columns(4)
 
