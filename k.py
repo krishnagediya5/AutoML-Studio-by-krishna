@@ -118,12 +118,12 @@ Train, Compare, and Deploy Models — No Code Required
 # FEATURE CARDS (ADDED ONLY)
 # ----------------------------------------------------
 
-f1, f2, f3, f4 = st.columns(4)
+f1, f2, f3 = st.columns(4)
 
 f1.markdown('<div class="feature-card">⚡ Fast Training</div>', unsafe_allow_html=True)
 f2.markdown('<div class="feature-card">🤖 Auto Model Selection</div>', unsafe_allow_html=True)
 f3.markdown('<div class="feature-card">📊 Smart Analytics</div>', unsafe_allow_html=True)
-f4.markdown('<div class="feature-card">☁️ Cloud Ready</div>', unsafe_allow_html=True)
+
 
 # ----------------------------------------------------
 # ORIGINAL APP STARTS
