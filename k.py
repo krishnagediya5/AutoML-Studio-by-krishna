@@ -44,47 +44,53 @@ st.set_page_config(
 )
 
 # ----------------------------------------------------
-# HERO UI (ADDED ONLY)
-# ----------------------------------------------------
-
-# ----------------------------------------------------
-# HERO SECTION UI (ONLY UI — NO LOGIC CHANGE)
+# PREMIUM HERO UI (REPLACE OLD HERO)
 # ----------------------------------------------------
 
 st.markdown("""
 <style>
 
 .hero {
-    background: linear-gradient(90deg,#2563eb,#7c3aed);
-    padding: 48px;
-    border-radius: 18px;
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    padding: 36px;
+    border-radius: 16px;
     margin-bottom: 28px;
 }
 
 .hero-title {
-    font-size: 46px;
+    font-size: 44px;
     font-weight: 800;
     color: white;
 }
 
 .hero-subtitle {
-    font-size: 20px;
+    font-size: 18px;
     color: #e2e8f0;
-    margin-top: 10px;
-    font-weight: 500;
+    margin-top: 8px;
 }
 
-.hero-divider {
-    height: 3px;
-    width: 90px;
-    background: white;
-    margin-top: 18px;
-    border-radius: 4px;
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 25px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<div class="hero">
+
+<div class="hero-title">
+🚀 AutoML Studio
+</div>
+
+<div class="hero-subtitle">
+Train, Compare, and Deploy Models — No Code Required
+</div>
+
+</div>
+""", unsafe_allow_html=True)
 st.markdown("""
 <div class="hero">
 
