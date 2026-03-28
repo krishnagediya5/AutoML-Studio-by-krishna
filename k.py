@@ -37,13 +37,82 @@ from sklearn.metrics import (
     mean_squared_error
 )
 
-st.set_page_config(page_title="AutoML Studio", layout="wide")
+st.set_page_config(
+    page_title="AutoML Studio",
+    page_icon="🚀",
+    layout="wide"
+)
 
-# SIDEBAR 
+# ----------------------------------------------------
+# HERO UI (ADDED ONLY)
+# ----------------------------------------------------
+
+st.markdown("""
+<style>
+
+.hero {
+    background: linear-gradient(90deg,#2563eb,#7c3aed);
+    padding: 50px;
+    border-radius: 18px;
+    margin-bottom: 25px;
+}
+
+.hero-title {
+    font-size: 48px;
+    font-weight: 800;
+    color: white;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    color: #e2e8f0;
+    margin-top: 12px;
+}
+
+.feature-box {
+    background: rgba(255,255,255,0.12);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    font-weight: 600;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="hero">
+
+<div class="hero-title">
+What if building Machine Learning models required ZERO coding?
+</div>
+
+<div class="hero-subtitle">
+Upload your dataset and let AutoML Studio automatically train, compare, and select the best model.
+</div>
+
+</div>
+""", unsafe_allow_html=True)
+
+f1, f2, f3, f4 = st.columns(4)
+
+f1.markdown('<div class="feature-box">⚡ Fast Training</div>', unsafe_allow_html=True)
+f2.markdown('<div class="feature-box">🤖 Auto Model Selection</div>', unsafe_allow_html=True)
+f3.markdown('<div class="feature-box">📊 Smart Analytics</div>', unsafe_allow_html=True)
+f4.markdown('<div class="feature-box">☁️ Cloud Ready</div>', unsafe_allow_html=True)
+
+# ----------------------------------------------------
+# ORIGINAL APP (UNCHANGED)
+# ----------------------------------------------------
+
 st.sidebar.markdown("## 📂 Upload Dataset")
-file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
-# MAIN 
+file = st.sidebar.file_uploader(
+    "Upload CSV",
+    type=["csv"]
+)
+
 if file:
 
     if "df" not in st.session_state:
@@ -57,15 +126,29 @@ if file:
     st.dataframe(df.head())
 
     col1, col2 = st.columns(2)
-    col1.write(f"📐 Shape: {df.shape}")
-    col2.write("❗ Missing Values")
-    col2.dataframe(df.isnull().sum().to_frame("Count"))
 
-    numeric_cols = df.select_dtypes(include=np.number).columns
+    col1.write(f"📐 Shape: {df.shape}")
+
+    col2.write("❗ Missing Values")
+
+    col2.dataframe(
+        df.isnull().sum().to_frame("Count")
+    )
+
+    numeric_cols = df.select_dtypes(
+        include=np.number
+    ).columns
 
     if len(numeric_cols) > 0:
-        col = st.selectbox("📈 Distribution Column", numeric_cols)
-        st.plotly_chart(px.histogram(df, x=col))
+
+        col = st.selectbox(
+            "📈 Distribution Column",
+            numeric_cols
+        )
+
+        st.plotly_chart(
+            px.histogram(df, x=col)
+        )
 
     # ---------------- Preprocessing ----------------
     st.subheader("🧹 Preprocessing")
