@@ -1,9 +1,13 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import pickle
 import plotly.express as px
+import plotly.graph_objects as go
+import time
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
 
@@ -24,9 +28,14 @@ from sklearn.svm import SVR
 
 # Unsupervised
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
-from sklearn.metrics import silhouette_score, accuracy_score, mean_squared_error
+from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    mean_squared_error
+)
 # =====================================================
 # PAGE CONFIG
 # =====================================================
@@ -621,6 +630,7 @@ if file:
 else:
 
     st.info("Upload dataset to start AutoML")
+    
 st.markdown(
     '<div class="footer">Developed by Krishna Gediya | AutoML Application</div>',
     unsafe_allow_html=True
