@@ -573,8 +573,3 @@ if file:
 else:
 
     st.info("Upload dataset to start AutoML")
-st.markdown(
-    '<div class="footer">Developed by Krishna Gediya | AutoML Application</div>',
-    unsafe_allow_html=True
-)
-
