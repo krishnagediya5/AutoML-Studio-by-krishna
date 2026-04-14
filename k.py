@@ -281,7 +281,7 @@ if file:
     # UNSUPERVISED
     # =====================================================
 
-    else:
+else:
 
         st.subheader("Clustering Leaderboard")
 
