@@ -35,112 +35,81 @@ from sklearn.metrics import accuracy_score, mean_squared_error
 # =====================================================
 
 st.set_page_config(
-    page_title="Smart AutoML",
+    page_title="AutoML Studio",
     page_icon="🚀",
     layout="wide"
 )
 
 # =====================================================
-# MODERN UI: GLASS + ANIMATION + NAVBAR + NEW THEME
+# CLEAN MODERN LAYOUT (SIMPLER & BETTER THAN LAST ONE)
 # =====================================================
 
 st.markdown("""
 <style>
 
-/* Animated gradient background */
+/* Background */
 .stApp {
-    background: linear-gradient(-45deg,#020617,#0f172a,#111827,#020617);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    background: linear-gradient(180deg,#020617,#020617);
 }
 
-@keyframes gradientBG {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
-}
-
-/* Navbar */
-.navbar {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(12px);
-    padding: 14px 24px;
-    border-radius: 14px;
-    margin-bottom: 20px;
-    font-size: 18px;
-    font-weight: 600;
-    color: white;
-}
-
-/* Hero Glass */
+/* Hero Section */
 .hero {
-    background: linear-gradient(135deg,#22c55e,#06b6d4);
-    padding: 50px;
-    border-radius: 26px;
-    margin-bottom: 28px;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.4);
+    background: linear-gradient(135deg,#6366f1,#9333ea);
+    padding: 44px;
+    border-radius: 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.35);
 }
 
 .hero-title {
-    font-size: 54px;
-    font-weight: 900;
+    font-size: 48px;
+    font-weight: 800;
     color: white;
 }
 
 .hero-subtitle {
-    font-size: 20px;
+    font-size: 18px;
     color: #e5e7eb;
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
-/* Glass cards */
+/* Feature cards */
 .card {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(12px);
-    padding: 22px;
-    border-radius: 18px;
+    background: #0f172a;
+    padding: 18px;
+    border-radius: 16px;
     text-align: center;
-    font-weight: 600;
     color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-    transition: all 0.25s ease;
+    font-weight: 600;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.3);
+    transition: 0.2s;
 }
 
 .card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
 }
 
-.metric-card {
-    background: linear-gradient(135deg,#111827,#020617);
-    padding: 20px;
+.info-card {
+    background: #020617;
+    padding: 18px;
     border-radius: 16px;
-    color: white;
-    text-align: center;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+    color: #e5e7eb;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.35);
 }
 
 .section-title {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
-    margin-top: 25px;
+    margin-top: 24px;
     color: white;
 }
 
 .block-container {
-    max-width: 1200px;
+    max-width: 1100px;
 }
 
 </style>
 """, unsafe_allow_html=True)
-
-# =====================================================
-# NAVBAR
-# =====================================================
-
-st.markdown(
-    '<div class="navbar">🚀 Smart AutoML Dashboard</div>',
-    unsafe_allow_html=True
-)
 
 # =====================================================
 # HERO
@@ -150,18 +119,18 @@ st.markdown("""
 <div class="hero">
 
 <div class="hero-title">
-Smart AutoML
+AutoML Studio
 </div>
 
 <div class="hero-subtitle">
-Train Fast • Pick Best Model • Predict Smart
+Train Fast • Compare Models • Predict Smart
 </div>
 
 </div>
 """, unsafe_allow_html=True)
 
 # =====================================================
-# FEATURE CARDS
+# FEATURE BOXES
 # =====================================================
 
 c1, c2, c3, c4 = st.columns(4)
@@ -172,7 +141,7 @@ c1.markdown(
 )
 
 c2.markdown(
-    '<div class="card">🤖 Smart Selection</div>',
+    '<div class="card">🤖 Best Model</div>',
     unsafe_allow_html=True
 )
 
@@ -182,30 +151,30 @@ c3.markdown(
 )
 
 c4.markdown(
-    '<div class="card">☁️ Deploy Ready</div>',
+    '<div class="card">☁️ Ready Deploy</div>',
     unsafe_allow_html=True
 )
 
 # =====================================================
-# METRIC CARDS (NEW)
+# PROJECT DETAILS (SHORT TEXT)
 # =====================================================
 
-st.markdown('<div class="section-title">Quick Stats</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">About Project</div>', unsafe_allow_html=True)
 
-m1, m2, m3 = st.columns(3)
+info1, info2, info3 = st.columns(3)
 
-m1.markdown(
-    '<div class="metric-card"><h2>8+</h2><p>Algorithms</p></div>',
+info1.markdown(
+    '<div class="info-card">Auto train models automatically.</div>',
     unsafe_allow_html=True
 )
 
-m2.markdown(
-    '<div class="metric-card"><h2>Auto</h2><p>Feature Selection</p></div>',
+info2.markdown(
+    '<div class="info-card">Find best model instantly.</div>',
     unsafe_allow_html=True
 )
 
-m3.markdown(
-    '<div class="metric-card"><h2>Real-time</h2><p>Predictions</p></div>',
+info3.markdown(
+    '<div class="info-card">Predict results in seconds.</div>',
     unsafe_allow_html=True
 )
 
@@ -285,12 +254,6 @@ if file:
 
         st.session_state.df = df
         st.success("Missing Values Handled")
-
-
-
-
-
-
 
 # ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
