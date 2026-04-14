@@ -171,7 +171,7 @@ st.markdown("""
 </div>
 
 <div class="hero-subtitle">
-Train, Compare, and Deploy Machine Learning Models — Beautifully and Instantly
+Train, Compare, and Deploy Machine Learning Models - Beautifully and Instantly
 </div>
 
 </div>
