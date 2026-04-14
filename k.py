@@ -578,6 +578,6 @@ else:
 # =====================================================
 
 st.markdown(
-    '<div class="footer">Developed by Your Name | AutoML Application</div>',
+    '<div class="footer">Developed by Krishna Gediya | AutoML Application</div>',
     unsafe_allow_html=True
 )
