@@ -41,6 +41,25 @@ from sklearn.metrics import (
 # PAGE CONFIG
 # =====================================================
 
+# =====================================================
+# THEME TOGGLE (LIGHT / DARK)
+# =====================================================
+
+if "theme_mode" not in st.session_state:
+    st.session_state.theme_mode = "Light"
+
+with st.sidebar:
+    theme_toggle = st.toggle("🌙 Dark Mode")
+
+    if theme_toggle:
+        st.session_state.theme_mode = "Dark"
+    else:
+        st.session_state.theme_mode = "Light"
+
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
 st.set_page_config(
     page_title="AutoML Studio",
     page_icon="🚀",
@@ -48,20 +67,37 @@ st.set_page_config(
 )
 
 # =====================================================
-# GLOBAL STYLING (ATTRACTIVE UI ONLY — LOGIC UNCHANGED)
+# GLOBAL STYLING (LIGHT + DARK MODE AUTO SUPPORT)
 # =====================================================
 
 st.markdown("""
 <style>
 
-/* Main background */
+/* Auto theme colors */
+:root {
+    /* Theme variables controlled by toggle */
+
+    --primary: #2563eb;
+    --secondary: #7c3aed;
+    --bg-light: #f8fafc;
+    --card-light: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-light: #0f172a;
+        --card-light: #111827;
+    }
+}
+
+/* Main background adapts automatically */
 .stApp {
-    background: linear-gradient(180deg,#f8fafc,#eef2ff);
+    background: linear-gradient(180deg,var(--bg-light),rgba(99,102,241,0.08));
 }
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg,#1e3a8a,#7c3aed);
+    background: linear-gradient(135deg,var(--primary),var(--secondary));
     padding: 42px;
     border-radius: 20px;
     margin-bottom: 28px;
@@ -82,7 +118,7 @@ st.markdown("""
 
 /* Feature Cards */
 .feature-box {
-    background: white;
+    background: var(--card-light);
     padding: 16px;
     border-radius: 14px;
     text-align: center;
@@ -96,16 +132,9 @@ st.markdown("""
     box-shadow: 0 12px 24px rgba(0,0,0,0.12);
 }
 
-/* Section Title */
-.section-title {
-    font-size: 26px;
-    font-weight: 700;
-    margin-top: 25px;
-}
-
 /* Buttons */
 .stButton > button {
-    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    background: linear-gradient(135deg,var(--primary),var(--secondary));
     color: white;
     border-radius: 10px;
     padding: 10px 18px;
@@ -114,24 +143,21 @@ st.markdown("""
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg,#1d4ed8,#6d28d9);
+    opacity: 0.9;
 }
 
-/* Sidebar */
+/* Sidebar adaptive */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#1e293b,#0f172a);
 }
 
-section[data-testid="stSidebar"] .css-1d391kg {
-    color: white;
-}
-
-/* Dataframe card */
+/* Smooth containers */
 .block-container {
     padding-top: 1.5rem;
 }
 
 </style>
+""", unsafe_allow_html=True)
 """, unsafe_allow_html=True)
 
 # =====================================================
