@@ -38,7 +38,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error
 # =====================================================
 
 st.set_page_config(
-    page_title="AutoML Studio",
+    page_title="Smart AutoML",
     page_icon="🚀",
     layout="wide"
 )
@@ -57,7 +57,7 @@ st.markdown("""
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    background: linear-gradient(135deg,#f97316,#ec4899);
     padding: 48px;
     border-radius: 24px;
     margin-bottom: 25px;
@@ -126,7 +126,7 @@ st.markdown("""
 </div>
 
 <div class="hero-subtitle">
-Build Machine Learning Models Automatically | Compare Algorithms | Deploy Faster
+Train Fast • Pick Best Model • Predict Smart
 </div>
 
 </div>
@@ -167,17 +167,17 @@ st.markdown("### About This Project")
 info1, info2, info3 = st.columns(3)
 
 info1.markdown(
-    '<div class="info-card">\n<b>AutoML Engine</b><br>\nAutomatically preprocesses data, selects features, and trains multiple machine learning models without manual coding.\n</div>',
+    '<div class="info-card">\n<b>AutoML Engine</b><br>\nAuto train models with zero coding.\n</div>',
     unsafe_allow_html=True
 )
 
 info2.markdown(
-    '<div class="info-card">\n<b>Model Comparison</b><br>\nCompares performance metrics like Accuracy and RMSE to identify the best performing model automatically.\n</div>',
+    '<div class="info-card">\n<b>Model Comparison</b><br>\nFind the best model instantly.\n</div>',
     unsafe_allow_html=True
 )
 
 info3.markdown(
-    '<div class="info-card">\n<b>Prediction System</b><br>\nGenerate predictions using trained models with real-time user inputs and clustering insights.\n</div>',
+    '<div class="info-card">\n<b>Prediction System</b><br>\nMake predictions in seconds.\n</div>',
     unsafe_allow_html=True
 )
 
@@ -259,6 +259,9 @@ if file:
 
         st.session_state.df = df
         st.success("Missing Values Handled")
+
+
+
 
 # ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
