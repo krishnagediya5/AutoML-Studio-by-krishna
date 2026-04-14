@@ -460,12 +460,21 @@ if file:
 # =========================================================
 # UNSUPERVISED
 # =========================================================
+    # =====================================================
+# UNSUPERVISED
+# =====================================================
+
+else:
+
+    st.subheader("🧠 Unsupervised Model Leaderboard")
+
+    data = df.select_dtypes(include=np.number)
+
+    if data.shape[1] == 0:
+
+        st.error("No numeric columns available for clustering")
 
     else:
-
-        st.subheader("🧠 Unsupervised Model Leaderboard")
-
-        data = df.select_dtypes(include=np.number)
 
         scaler = StandardScaler()
 
@@ -478,68 +487,80 @@ if file:
             "DBSCAN": DBSCAN()
         }
 
-        results=[]
-        best_score=-1
+        results = []
 
-        for name,model in models.items():
+        best_score = -1
+        best_labels = None
+        best_model_name = None
 
-            labels = model.fit_predict(data_scaled)
+        for name, model in models.items():
 
-            if len(set(labels)) > 1:
+            try:
 
-                score = silhouette_score(
-                    data_scaled,
-                    labels
-                )
+                labels = model.fit_predict(data_scaled)
 
-            else:
+                if len(set(labels)) > 1:
 
-                score = -1
+                    score = silhouette_score(
+                        data_scaled,
+                        labels
+                    )
 
-            results.append([name,score])
+                else:
 
-            if score > best_score:
+                    score = -1
 
-                best_score = score
-                best_model_name = name
-                best_labels = labels
+                results.append([name, score])
 
-        res = pd.DataFrame(
+                if score > best_score:
+
+                    best_score = score
+                    best_labels = labels
+                    best_model_name = name
+
+            except:
+
+                results.append([name, -1])
+
+        leaderboard = pd.DataFrame(
             results,
             columns=[
                 "Algorithm",
                 "Silhouette Score"
             ]
+        ).sort_values(
+            by="Silhouette Score",
+            ascending=False
         )
 
-        st.dataframe(res)
+        st.dataframe(leaderboard)
 
-        st.success(
-            f"Best Clustering Model: {best_model_name}"
-        )
+        if best_labels is not None:
 
-        df["Cluster"] = best_labels
+            st.success(
+                f"Best Clustering Model: {best_model_name}"
+            )
 
-        pca = PCA(n_components=2)
+            pca = PCA(n_components=2)
 
-        reduced = pca.fit_transform(data_scaled)
+            reduced = pca.fit_transform(data_scaled)
 
-        plot_df = pd.DataFrame(
-            reduced,
-            columns=["PC1","PC2"]
-        )
+            plot_df = pd.DataFrame(
+                reduced,
+                columns=["PC1","PC2"]
+            )
 
-        plot_df["Cluster"] = best_labels
+            plot_df["Cluster"] = best_labels
 
-        fig = px.scatter(
-            plot_df,
-            x="PC1",
-            y="PC2",
-            color="Cluster",
-            title="Cluster Visualization"
-        )
+            fig = px.scatter(
+                plot_df,
+                x="PC1",
+                y="PC2",
+                color="Cluster",
+                title="Cluster Visualization"
+            )
 
-        st.plotly_chart(fig)
+            st.plotly_chart(fig)
 
         # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
         st.subheader("⭐ Feature Importance (Unsupervised)")
