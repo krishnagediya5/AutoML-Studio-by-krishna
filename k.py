@@ -256,12 +256,6 @@ if file:
         ["Supervised","Unsupervised"]
     )
 
-    # Remaining ML logic unchanged from your original code
-
-else:
-
-    st.info("Upload dataset to start AutoML")
-
 
     # =====================================================
     # SUPERVISED
@@ -445,7 +439,6 @@ else:
         st.success(
             f"Best Clustering Model: {best_model_name}"
         )
-
 else:
 
     st.info("Upload dataset to start AutoML")
