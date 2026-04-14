@@ -8,27 +8,23 @@ from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
 
-# Classification
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, Lasso
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    ExtraTreesClassifier,
+    GradientBoostingClassifier,
+    RandomForestRegressor,
+    ExtraTreesRegressor,
+    GradientBoostingRegressor,
+)
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.svm import SVC, SVR
 from sklearn.naive_bayes import GaussianNB
 
-# Regression
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.svm import SVR
-
-# Unsupervised
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, accuracy_score, mean_squared_error
 from sklearn.decomposition import PCA
-
-from sklearn.metrics import accuracy_score, mean_squared_error
 
 # =====================================================
 # PAGE CONFIG
@@ -41,21 +37,36 @@ st.set_page_config(
 )
 
 # =====================================================
-# STYLE
+# MODERN UI STYLE
 # =====================================================
 
 st.markdown("""
 <style>
 
+/* Animated Background */
+
 .stApp {
-    background: linear-gradient(180deg,#020617,#020617);
+    background: linear-gradient(-45deg,#020617,#020617,#020617,#0f172a);
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
 }
 
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+/* Hero Section */
+
 .hero {
-    background: linear-gradient(135deg,#6366f1,#9333ea);
-    padding: 44px;
-    border-radius: 22px;
-    margin-bottom: 24px;
+    background: linear-gradient(135deg,#6366f1,#9333ea,#ec4899);
+    padding: 48px;
+    border-radius: 26px;
+    margin-bottom: 28px;
+    box-shadow: 0 20px 50px rgba(147,51,234,0.35);
+    position: relative;
+    overflow: hidden;
 }
 
 .hero-title {
@@ -69,25 +80,39 @@ st.markdown("""
     color: #e5e7eb;
 }
 
+/* Glass Cards */
+
 .card {
-    background: #0f172a;
-    padding: 18px;
-    border-radius: 16px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 18px;
     text-align: center;
     color: white;
     font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+    transition: all 0.25s ease;
 }
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+}
+
+/* Sidebar */
 
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#020617,#0f172a);
 }
 
+/* Footer */
+
 .footer {
-    margin-top: 40px;
-    padding: 12px;
+    margin-top: 50px;
+    padding: 16px;
     text-align: center;
     color: #9ca3af;
     font-size: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
 }
 
 </style>
@@ -117,25 +142,10 @@ Train • Compare • Predict — All in One Place
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.markdown(
-    '<div class="card">⚡ Fast Training</div>',
-    unsafe_allow_html=True
-)
-
-c2.markdown(
-    '<div class="card">🤖 Best Model</div>',
-    unsafe_allow_html=True
-)
-
-c3.markdown(
-    '<div class="card">📊 Analytics</div>',
-    unsafe_allow_html=True
-)
-
-c4.markdown(
-    '<div class="card">☁️ Ready Deploy</div>',
-    unsafe_allow_html=True
-)
+c1.markdown('<div class="card">⚡ Fast Training</div>', unsafe_allow_html=True)
+c2.markdown('<div class="card">🤖 Best Model</div>', unsafe_allow_html=True)
+c3.markdown('<div class="card">📊 Analytics</div>', unsafe_allow_html=True)
+c4.markdown('<div class="card">☁️ Ready Deploy</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -159,8 +169,6 @@ if file:
 
     st.success("Dataset Loaded Successfully")
 
-    # Preview
-
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
@@ -169,16 +177,9 @@ if file:
     col1.write(f"Shape: {df.shape}")
 
     col2.write("Missing Values")
+    col2.dataframe(df.isnull().sum().to_frame("Count"))
 
-    col2.dataframe(
-        df.isnull().sum().to_frame("Count")
-    )
-
-    # Distribution
-
-    numeric_cols = df.select_dtypes(
-        include=np.number
-    ).columns
+    numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
 
@@ -191,26 +192,15 @@ if file:
             px.histogram(df, x=col)
         )
 
-    # =====================================================
-    # PREPROCESSING
-    # =====================================================
+    # ================= PREPROCESSING =================
 
     st.subheader("Preprocessing")
 
-    fill_cols = st.multiselect(
-        "Columns",
-        df.columns
-    )
+    fill_cols = st.multiselect("Columns", df.columns)
 
     fill_method = st.selectbox(
         "Method",
-        [
-            "Mean",
-            "Median",
-            "Mode",
-            "Forward Fill",
-            "Backward Fill"
-        ]
+        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
     )
 
     if st.button("Apply Missing Fill"):
@@ -233,18 +223,11 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
+        st.success("Missing Values Handled")
 
-        st.success(
-            "Missing Values Handled"
-        )
+    # ================= ENCODING =================
 
-    # =====================================================
-    # ENCODING
-    # =====================================================
-
-    cat_cols = df.select_dtypes(
-        include="object"
-    ).columns
+    cat_cols = df.select_dtypes(include="object").columns
 
     encode_cols = st.multiselect(
         "Categorical Columns",
@@ -254,24 +237,16 @@ if file:
     if st.button("Apply Encoding"):
 
         for col in encode_cols:
-
             df[col] = LabelEncoder().fit_transform(
                 df[col].astype(str)
             )
 
         st.session_state.df = df
+        st.success("Encoding Applied")
 
-        st.success(
-            "Encoding Applied"
-        )
+    # ================= SCALING =================
 
-    # =====================================================
-    # SCALING
-    # =====================================================
-
-    num_cols = df.select_dtypes(
-        include=np.number
-    ).columns
+    num_cols = df.select_dtypes(include=np.number).columns
 
     scale_cols = st.multiselect(
         "Columns for Scaling",
@@ -280,10 +255,7 @@ if file:
 
     scale_method = st.selectbox(
         "Scaling Method",
-        [
-            "Standardization",
-            "Normalization"
-        ]
+        ["Standardization","Normalization"]
     )
 
     if st.button("Apply Scaling"):
@@ -299,10 +271,7 @@ if file:
         )
 
         st.session_state.df = df
-
-        st.success(
-            "Scaling Applied"
-        )
+        st.success("Scaling Applied")
 
 
 
@@ -668,6 +637,7 @@ if file:
 else:
 
     st.info("Upload dataset to start AutoML")
+
 
 # =====================================================
 # FOOTER
