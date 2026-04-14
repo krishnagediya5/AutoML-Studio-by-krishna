@@ -37,62 +37,120 @@ from sklearn.metrics import (
     mean_squared_error
 )
 
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
 st.set_page_config(
     page_title="AutoML Studio",
     page_icon="🚀",
     layout="wide"
 )
 
-# ----------------------------------------------------
-# PREMIUM HERO UI (REPLACE OLD HERO)
-# ----------------------------------------------------
+# =====================================================
+# GLOBAL STYLING (ATTRACTIVE UI ONLY — LOGIC UNCHANGED)
+# =====================================================
 
 st.markdown("""
 <style>
 
+/* Main background */
+.stApp {
+    background: linear-gradient(180deg,#f8fafc,#eef2ff);
+}
+
+/* Hero Section */
 .hero {
-    background: linear-gradient(135deg,#2563eb,#7c3aed);
-    padding: 36px;
-    border-radius: 16px;
+    background: linear-gradient(135deg,#1e3a8a,#7c3aed);
+    padding: 42px;
+    border-radius: 20px;
     margin-bottom: 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
 .hero-title {
-    font-size: 44px;
+    font-size: 46px;
     font-weight: 800;
     color: white;
 }
 
 .hero-subtitle {
     font-size: 18px;
-    color: #e2e8f0;
-    margin-top: 8px;
+    color: #e0e7ff;
+    margin-top: 10px;
 }
 
+/* Feature Cards */
+.feature-box {
+    background: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.feature-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+/* Section Title */
 .section-title {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     margin-top: 25px;
+}
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    color: white;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 600;
+    border: none;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg,#1d4ed8,#6d28d9);
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg,#1e293b,#0f172a);
+}
+
+section[data-testid="stSidebar"] .css-1d391kg {
+    color: white;
+}
+
+/* Dataframe card */
+.block-container {
+    padding-top: 1.5rem;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+# =====================================================
+# HERO UI
+# =====================================================
+
 st.markdown("""
 <div class="hero">
 
 <div class="hero-title">
-🚀 AutoML Studio
+🚀 AutoML Studio Pro
 </div>
 
 <div class="hero-subtitle">
-Train, Compare, and Deploy Models — No Code Required
+Train, Compare, and Deploy Machine Learning Models — Beautifully and Instantly
 </div>
 
 </div>
 """, unsafe_allow_html=True)
-
-
 
 f1, f2, f3, f4 = st.columns(4)
 
@@ -101,9 +159,9 @@ f2.markdown('<div class="feature-box">🤖 Auto Model Selection</div>', unsafe_a
 f3.markdown('<div class="feature-box">📊 Smart Analytics</div>', unsafe_allow_html=True)
 f4.markdown('<div class="feature-box">☁️ Cloud Ready</div>', unsafe_allow_html=True)
 
-# ----------------------------------------------------
-# ORIGINAL APP (UNCHANGED)
-# ----------------------------------------------------
+# =====================================================
+# ORIGINAL LOGIC (UNCHANGED)
+# =====================================================
 
 st.sidebar.markdown("## 📂 Upload Dataset")
 
@@ -149,7 +207,6 @@ if file:
             px.histogram(df, x=col)
         )
 
-    # ---------------- Preprocessing ----------------
     st.subheader("🧹 Preprocessing")
 
     fill_cols = st.multiselect("Columns", df.columns)
@@ -181,7 +238,6 @@ if file:
         st.session_state.df = df
         st.success("✅ Missing Values Handled")
 
-    # ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
 
     encode_cols = st.multiselect("Categorical Columns", cat_cols)
@@ -194,7 +250,6 @@ if file:
         st.session_state.df = df
         st.success("✅ Encoding Applied")
 
-    # ---------------- Scaling ----------------
     num_cols = df.select_dtypes(include=np.number).columns
 
     scale_cols = st.multiselect("Columns for Scaling", num_cols)
@@ -217,10 +272,6 @@ if file:
         "🧠 Select Learning Type",
         ["Supervised","Unsupervised"]
     )
-
-# =========================================================
-# SUPERVISED
-# =========================================================
 
     if learning_type == "Supervised":
 
@@ -302,7 +353,6 @@ if file:
 
             st.success(f"Best Model Selected: {best_model_name}")
 
-            # ---------------- FEATURE IMPORTANCE (SUPERVISED) ----------------
             if hasattr(best_model, "feature_importances_"):
 
                 st.subheader("⭐ Feature Importance")
@@ -361,7 +411,6 @@ if file:
 
             st.success(f"Best Model Selected: {best_model_name}")
 
-            # ---------------- FEATURE IMPORTANCE (SUPERVISED REGRESSION) ----------------
             if hasattr(best_model, "feature_importances_"):
 
                 st.subheader("⭐ Feature Importance")
@@ -381,6 +430,7 @@ if file:
                 )
 
                 st.plotly_chart(fig_imp)
+
             st.subheader("🧑‍💻 User Input Prediction")
 
             user_data = {}
@@ -399,10 +449,6 @@ if file:
                 prediction = best_model.predict(input_df)
 
                 st.success(f"Prediction: {prediction[0]}")
-
-# =========================================================
-# UNSUPERVISED
-# =========================================================
 
     else:
 
@@ -484,7 +530,6 @@ if file:
 
         st.plotly_chart(fig)
 
-        # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
         st.subheader("⭐ Feature Importance (Unsupervised)")
 
         pca_imp = PCA(n_components=2)
@@ -508,6 +553,7 @@ if file:
         )
 
         st.plotly_chart(fig_unsup_imp)
+
         st.subheader("🧑‍💻 User Input Cluster Prediction")
     
         user_data = {}
