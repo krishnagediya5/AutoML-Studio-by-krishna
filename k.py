@@ -167,7 +167,7 @@ section[data-testid="stSidebar"] {
 st.markdown("""
 <div class="hero">
 
-<div class="hero-title">🚀 AutoML Studio Pro
+<div class="hero-title">AutoML Studio 
 </div>
 
 <div class="hero-subtitle">
