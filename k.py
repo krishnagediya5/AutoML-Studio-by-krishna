@@ -41,24 +41,21 @@ st.set_page_config(
 )
 
 # =====================================================
-# CLEAN MODERN LAYOUT (SIMPLER & BETTER THAN LAST ONE)
+# STYLE
 # =====================================================
 
 st.markdown("""
 <style>
 
-/* Background */
 .stApp {
     background: linear-gradient(180deg,#020617,#020617);
 }
 
-/* Hero Section */
 .hero {
     background: linear-gradient(135deg,#6366f1,#9333ea);
     padding: 44px;
     border-radius: 22px;
     margin-bottom: 24px;
-    box-shadow: 0 14px 34px rgba(0,0,0,0.35);
 }
 
 .hero-title {
@@ -70,10 +67,8 @@ st.markdown("""
 .hero-subtitle {
     font-size: 18px;
     color: #e5e7eb;
-    margin-top: 6px;
 }
 
-/* Feature cards */
 .card {
     background: #0f172a;
     padding: 18px;
@@ -81,47 +76,12 @@ st.markdown("""
     text-align: center;
     color: white;
     font-weight: 600;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.3);
-    transition: 0.2s;
 }
 
-.card:hover {
-    transform: translateY(-6px);
-}
-
-.info-card {
-    background: #020617;
-    padding: 18px;
-    border-radius: 16px;
-    color: #e5e7eb;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.35);
-}
-
-.section-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-top: 24px;
-    color: white;
-}
-
-.block-container {
-    max-width: 1100px;
-}
-
-
-
-/* Modern Sidebar */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg,#020617,#0f172a);
-    border-right: 1px solid rgba(255,255,255,0.08);
 }
 
-section[data-testid="stSidebar"] .stButton>button {
-    border-radius: 10px;
-    font-weight: 600;
-}
-
-/* Footer */
 .footer {
     margin-top: 40px;
     padding: 12px;
@@ -145,14 +105,14 @@ AutoML Studio
 </div>
 
 <div class="hero-subtitle">
-Enterprise-Grade Automation • Intelligent Model Selection • High-Performance Predictions
+Train • Compare • Predict — All in One Place
 </div>
 
 </div>
 """, unsafe_allow_html=True)
 
 # =====================================================
-# FEATURE BOXES
+# FEATURE CARDS
 # =====================================================
 
 c1, c2, c3, c4 = st.columns(4)
@@ -177,37 +137,10 @@ c4.markdown(
     unsafe_allow_html=True
 )
 
-# =====================================================
-# PROJECT DETAILS (SHORT TEXT)
-# =====================================================
-
-st.markdown('<div class="section-title">Why Use This Tool</div>', unsafe_allow_html=True)
-
-info1, info2, info3 = st.columns(3)
-
-info1.markdown(
-    '<div class="info-card">Eliminate manual coding with fully automated machine learning workflows designed for efficiency and scalability.</div>',
-    unsafe_allow_html=True
-)
-
-info2.markdown(
-    '<div class="info-card">Advanced evaluation engine analyzes multiple algorithms to identify the most accurate and reliable model automatically.</div>',
-    unsafe_allow_html=True
-)
-
-info3.markdown(
-    '<div class="info-card">Generate real-time predictive insights using optimized models built for production-level performance.</div>',
-    unsafe_allow_html=True
-)
-
-# =====================================================
-# CLEAN MINIMAL FRONT PAGE (REMOVED THEORY SECTIONS)
-# =====================================================
-
 st.markdown("---")
 
 # =====================================================
-# ORIGINAL LOGIC (UNCHANGED)
+# FILE UPLOAD
 # =====================================================
 
 st.sidebar.markdown("## Upload Dataset")
@@ -226,6 +159,8 @@ if file:
 
     st.success("Dataset Loaded Successfully")
 
+    # Preview
+
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
@@ -239,7 +174,11 @@ if file:
         df.isnull().sum().to_frame("Count")
     )
 
-    numeric_cols = df.select_dtypes(include=np.number).columns
+    # Distribution
+
+    numeric_cols = df.select_dtypes(
+        include=np.number
+    ).columns
 
     if len(numeric_cols) > 0:
 
@@ -252,23 +191,36 @@ if file:
             px.histogram(df, x=col)
         )
 
+    # =====================================================
+    # PREPROCESSING
+    # =====================================================
+
     st.subheader("Preprocessing")
 
-    fill_cols = st.multiselect("Columns", df.columns)
+    fill_cols = st.multiselect(
+        "Columns",
+        df.columns
+    )
 
     fill_method = st.selectbox(
         "Method",
-        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
+        [
+            "Mean",
+            "Median",
+            "Mode",
+            "Forward Fill",
+            "Backward Fill"
+        ]
     )
 
     if st.button("Apply Missing Fill"):
 
         for col in fill_cols:
 
-            if fill_method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
+            if fill_method == "Mean":
                 df[col] = df[col].fillna(df[col].mean())
 
-            elif fill_method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
+            elif fill_method == "Median":
                 df[col] = df[col].fillna(df[col].median())
 
             elif fill_method == "Mode":
@@ -281,53 +233,79 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-        st.success("Missing Values Handled")
 
+        st.success(
+            "Missing Values Handled"
+        )
 
-# =====================================================
-# SIMPLE FOOTER
-# =====================================================
+    # =====================================================
+    # ENCODING
+    # =====================================================
 
-st.markdown(
-    '<div class="footer">Developed by Your Name | AutoML Application</div>',
-    unsafe_allow_html=True
-)
+    cat_cols = df.select_dtypes(
+        include="object"
+    ).columns
 
-
-
-    
-
-# ---------------- Encoding ----------------
-    cat_cols = df.select_dtypes(include="object").columns
-
-    encode_cols = st.multiselect("Categorical Columns", cat_cols)
+    encode_cols = st.multiselect(
+        "Categorical Columns",
+        cat_cols
+    )
 
     if st.button("Apply Encoding"):
 
         for col in encode_cols:
-            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+
+            df[col] = LabelEncoder().fit_transform(
+                df[col].astype(str)
+            )
 
         st.session_state.df = df
-        st.success("✅ Encoding Applied")
 
-    # ---------------- Scaling ----------------
-    num_cols = df.select_dtypes(include=np.number).columns
+        st.success(
+            "Encoding Applied"
+        )
 
-    scale_cols = st.multiselect("Columns for Scaling", num_cols)
+    # =====================================================
+    # SCALING
+    # =====================================================
+
+    num_cols = df.select_dtypes(
+        include=np.number
+    ).columns
+
+    scale_cols = st.multiselect(
+        "Columns for Scaling",
+        num_cols
+    )
 
     scale_method = st.selectbox(
         "Scaling Method",
-        ["Standardization","Normalization"]
+        [
+            "Standardization",
+            "Normalization"
+        ]
     )
 
     if st.button("Apply Scaling"):
 
-        scaler = StandardScaler() if scale_method=="Standardization" else MinMaxScaler()
+        scaler = (
+            StandardScaler()
+            if scale_method == "Standardization"
+            else MinMaxScaler()
+        )
 
-        df[scale_cols] = scaler.fit_transform(df[scale_cols])
+        df[scale_cols] = scaler.fit_transform(
+            df[scale_cols]
+        )
 
         st.session_state.df = df
-        st.success("✅ Scaling Applied")
+
+        st.success(
+            "Scaling Applied"
+        )
+
+
+
 
     learning_type = st.radio(
         "🧠 Select Learning Type",
@@ -690,3 +668,15 @@ st.markdown(
 else:
 
     st.info("Upload dataset to start AutoML")
+
+# =====================================================
+# FOOTER
+# =====================================================
+
+st.markdown(
+    '<div class="footer">Developed by Krishna Gediya | AutoML Application</div>',
+    unsafe_allow_html=True
+)
+
+
+
