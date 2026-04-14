@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
 import plotly.express as px
-import plotly.graph_objects as go
-import time
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
@@ -31,7 +28,7 @@ from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
 from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 
-from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error
+from sklearn.metrics import accuracy_score, mean_squared_error
 
 # =====================================================
 # PAGE CONFIG
@@ -44,60 +41,81 @@ st.set_page_config(
 )
 
 # =====================================================
-# MODERN ATTRACTIVE FRONT PAGE LAYOUT (LOGIC SAME)
+# MODERN UI: GLASS + ANIMATION + NAVBAR + NEW THEME
 # =====================================================
 
 st.markdown("""
 <style>
 
-/* Background */
+/* Animated gradient background */
 .stApp {
-    background: linear-gradient(180deg,#0f172a,#020617);
+    background: linear-gradient(-45deg,#020617,#0f172a,#111827,#020617);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
 }
 
-/* Hero Section */
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+/* Navbar */
+.navbar {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    padding: 14px 24px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+/* Hero Glass */
 .hero {
-    background: linear-gradient(135deg,#f97316,#ec4899);
-    padding: 48px;
-    border-radius: 24px;
-    margin-bottom: 25px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+    background: linear-gradient(135deg,#22c55e,#06b6d4);
+    padding: 50px;
+    border-radius: 26px;
+    margin-bottom: 28px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.4);
 }
 
 .hero-title {
-    font-size: 52px;
+    font-size: 54px;
     font-weight: 900;
     color: white;
 }
 
 .hero-subtitle {
     font-size: 20px;
-    color: #e2e8f0;
-    margin-top: 10px;
+    color: #e5e7eb;
+    margin-top: 8px;
 }
 
-/* Feature Cards */
+/* Glass cards */
 .card {
-    background: #111827;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
     padding: 22px;
     border-radius: 18px;
     text-align: center;
     font-weight: 600;
     color: white;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     transition: all 0.25s ease;
 }
 
 .card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 16px 36px rgba(0,0,0,0.45);
 }
 
-.info-card {
-    background: linear-gradient(135deg,#1e293b,#020617);
+.metric-card {
+    background: linear-gradient(135deg,#111827,#020617);
     padding: 20px;
-    border-radius: 18px;
-    color: #e2e8f0;
+    border-radius: 16px;
+    color: white;
+    text-align: center;
     box-shadow: 0 10px 28px rgba(0,0,0,0.4);
 }
 
@@ -105,6 +123,7 @@ st.markdown("""
     font-size: 26px;
     font-weight: 700;
     margin-top: 25px;
+    color: white;
 }
 
 .block-container {
@@ -115,6 +134,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =====================================================
+# NAVBAR
+# =====================================================
+
+st.markdown(
+    '<div class="navbar">🚀 Smart AutoML Dashboard</div>',
+    unsafe_allow_html=True
+)
+
+# =====================================================
 # HERO
 # =====================================================
 
@@ -122,7 +150,7 @@ st.markdown("""
 <div class="hero">
 
 <div class="hero-title">
-🚀 AutoML Studio
+Smart AutoML
 </div>
 
 <div class="hero-subtitle">
@@ -133,51 +161,51 @@ Train Fast • Pick Best Model • Predict Smart
 """, unsafe_allow_html=True)
 
 # =====================================================
-# FEATURE BOXES
+# FEATURE CARDS
 # =====================================================
 
 c1, c2, c3, c4 = st.columns(4)
 
 c1.markdown(
-    '<div class="card">⚡ Fast Model Training<br><small>Train multiple ML models instantly</small></div>',
+    '<div class="card">⚡ Fast Training</div>',
     unsafe_allow_html=True
 )
 
 c2.markdown(
-    '<div class="card">🤖 Smart Model Selection<br><small>Automatically finds best algorithm</small></div>',
+    '<div class="card">🤖 Smart Selection</div>',
     unsafe_allow_html=True
 )
 
 c3.markdown(
-    '<div class="card">📊 Insightful Analytics<br><small>Visualize performance & features</small></div>',
+    '<div class="card">📊 Analytics</div>',
     unsafe_allow_html=True
 )
 
 c4.markdown(
-    '<div class="card">☁️ Deployment Ready<br><small>Production-ready ML pipeline</small></div>',
+    '<div class="card">☁️ Deploy Ready</div>',
     unsafe_allow_html=True
 )
 
 # =====================================================
-# PROJECT DESCRIPTION SECTION (NEW ATTRACTIVE DETAILS)
+# METRIC CARDS (NEW)
 # =====================================================
 
-st.markdown("### About This Project")
+st.markdown('<div class="section-title">Quick Stats</div>', unsafe_allow_html=True)
 
-info1, info2, info3 = st.columns(3)
+m1, m2, m3 = st.columns(3)
 
-info1.markdown(
-    '<div class="info-card">\n<b>AutoML Engine</b><br>\nAuto train models with zero coding.\n</div>',
+m1.markdown(
+    '<div class="metric-card"><h2>8+</h2><p>Algorithms</p></div>',
     unsafe_allow_html=True
 )
 
-info2.markdown(
-    '<div class="info-card">\n<b>Model Comparison</b><br>\nFind the best model instantly.\n</div>',
+m2.markdown(
+    '<div class="metric-card"><h2>Auto</h2><p>Feature Selection</p></div>',
     unsafe_allow_html=True
 )
 
-info3.markdown(
-    '<div class="info-card">\n<b>Prediction System</b><br>\nMake predictions in seconds.\n</div>',
+m3.markdown(
+    '<div class="metric-card"><h2>Real-time</h2><p>Predictions</p></div>',
     unsafe_allow_html=True
 )
 
@@ -214,9 +242,7 @@ if file:
         df.isnull().sum().to_frame("Count")
     )
 
-    numeric_cols = df.select_dtypes(
-        include=np.number
-    ).columns
+    numeric_cols = df.select_dtypes(include=np.number).columns
 
     if len(numeric_cols) > 0:
 
@@ -259,6 +285,9 @@ if file:
 
         st.session_state.df = df
         st.success("Missing Values Handled")
+
+
+
 
 
 
