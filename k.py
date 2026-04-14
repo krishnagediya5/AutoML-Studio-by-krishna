@@ -179,6 +179,65 @@ info3.markdown(
 )
 
 # =====================================================
+# ADDITIONAL PROFESSIONAL SECTIONS
+# =====================================================
+
+st.markdown('<div class="section-title">Real-World Use Cases</div>', unsafe_allow_html=True)
+
+u1, u2, u3 = st.columns(3)
+
+u1.markdown(
+    '<div class="info-card"><b>Fraud Detection</b><br>Identify suspicious financial transactions using advanced classification algorithms.</div>',
+    unsafe_allow_html=True
+)
+
+u2.markdown(
+    '<div class="info-card"><b>Sales Forecasting</b><br>Predict future revenue trends and optimize inventory planning using regression models.</div>',
+    unsafe_allow_html=True
+)
+
+u3.markdown(
+    '<div class="info-card"><b>Customer Churn Prediction</b><br>Detect customers likely to leave and improve retention strategies using predictive analytics.</div>',
+    unsafe_allow_html=True
+)
+
+
+st.markdown('<div class="section-title">Problem Statement</div>', unsafe_allow_html=True)
+
+st.markdown(
+    '<div class="info-card">Organizations often struggle to build accurate machine learning models due to complex workflows, manual feature engineering, and time-consuming model selection. This platform simplifies the entire machine learning lifecycle by automating preprocessing, model training, evaluation, and prediction in a single unified interface.</div>',
+    unsafe_allow_html=True
+)
+
+
+st.markdown('<div class="section-title">Technical Stack</div>', unsafe_allow_html=True)
+
+tech1, tech2, tech3, tech4 = st.columns(4)
+
+tech1.markdown('<div class="card">Python</div>', unsafe_allow_html=True)
+tech2.markdown('<div class="card">Scikit-learn</div>', unsafe_allow_html=True)
+tech3.markdown('<div class="card">Streamlit</div>', unsafe_allow_html=True)
+tech4.markdown('<div class="card">Plotly</div>', unsafe_allow_html=True)
+
+
+st.markdown('<div class="section-title">Model Performance Highlights</div>', unsafe_allow_html=True)
+
+p1, p2, p3 = st.columns(3)
+
+p1.markdown('<div class="metric-card"><h2>Multiple</h2><p>Algorithms Evaluated</p></div>', unsafe_allow_html=True)
+
+p2.markdown('<div class="metric-card"><h2>Auto</h2><p>Feature Selection</p></div>', unsafe_allow_html=True)
+
+p3.markdown('<div class="metric-card"><h2>Best</h2><p>Model Identification</p></div>', unsafe_allow_html=True)
+
+
+st.markdown(
+    '<div style="text-align:center; margin-top:40px; color:#9ca3af;">Developed by <b>Your Name</b> | Machine Learning & AI Application</div>',
+    unsafe_allow_html=True
+)
+
+
+# =====================================================
 # ORIGINAL LOGIC (UNCHANGED)
 # =====================================================
 
@@ -254,6 +313,7 @@ if file:
 
         st.session_state.df = df
         st.success("Missing Values Handled")
+
 
     
 
