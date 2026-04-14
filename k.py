@@ -123,7 +123,7 @@ AutoML Studio
 </div>
 
 <div class="hero-subtitle">
-Train Fast • Compare Models • Predict Smart
+Enterprise-Grade Automation • Intelligent Model Selection • High-Performance Predictions
 </div>
 
 </div>
@@ -159,22 +159,22 @@ c4.markdown(
 # PROJECT DETAILS (SHORT TEXT)
 # =====================================================
 
-st.markdown('<div class="section-title">About Project</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Why Use This Tool</div>', unsafe_allow_html=True)
 
 info1, info2, info3 = st.columns(3)
 
 info1.markdown(
-    '<div class="info-card">Auto train models automatically.</div>',
+    '<div class="info-card">Eliminate manual coding with fully automated machine learning workflows designed for efficiency and scalability.</div>',
     unsafe_allow_html=True
 )
 
 info2.markdown(
-    '<div class="info-card">Find best model instantly.</div>',
+    '<div class="info-card">Advanced evaluation engine analyzes multiple algorithms to identify the most accurate and reliable model automatically.</div>',
     unsafe_allow_html=True
 )
 
 info3.markdown(
-    '<div class="info-card">Predict results in seconds.</div>',
+    '<div class="info-card">Generate real-time predictive insights using optimized models built for production-level performance.</div>',
     unsafe_allow_html=True
 )
 
@@ -254,6 +254,8 @@ if file:
 
         st.session_state.df = df
         st.success("Missing Values Handled")
+
+    
 
 # ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
