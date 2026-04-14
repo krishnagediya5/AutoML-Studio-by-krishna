@@ -31,11 +31,11 @@ from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
 from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 
-from sklearn.metrics import (
-    accuracy_score,
-    confusion_matrix,
-    mean_squared_error
-)
+from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error
+
+# =====================================================
+# PAGE CONFIG
+# =====================================================
 
 st.set_page_config(
     page_title="AutoML Studio",
@@ -43,40 +43,80 @@ st.set_page_config(
     layout="wide"
 )
 
-# ----------------------------------------------------
-# PREMIUM HERO UI (REPLACE OLD HERO)
-# ----------------------------------------------------
+# =====================================================
+# MODERN ATTRACTIVE FRONT PAGE LAYOUT (LOGIC SAME)
+# =====================================================
 
 st.markdown("""
 <style>
 
+/* Background */
+.stApp {
+    background: linear-gradient(180deg,#0f172a,#020617);
+}
+
+/* Hero Section */
 .hero {
     background: linear-gradient(135deg,#2563eb,#7c3aed);
-    padding: 36px;
-    border-radius: 16px;
-    margin-bottom: 28px;
+    padding: 48px;
+    border-radius: 24px;
+    margin-bottom: 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.35);
 }
 
 .hero-title {
-    font-size: 44px;
-    font-weight: 800;
+    font-size: 52px;
+    font-weight: 900;
     color: white;
 }
 
 .hero-subtitle {
-    font-size: 18px;
+    font-size: 20px;
     color: #e2e8f0;
-    margin-top: 8px;
+    margin-top: 10px;
+}
+
+/* Feature Cards */
+.card {
+    background: #111827;
+    padding: 22px;
+    border-radius: 18px;
+    text-align: center;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    transition: all 0.25s ease;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 36px rgba(0,0,0,0.45);
+}
+
+.info-card {
+    background: linear-gradient(135deg,#1e293b,#020617);
+    padding: 20px;
+    border-radius: 18px;
+    color: #e2e8f0;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.4);
 }
 
 .section-title {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     margin-top: 25px;
 }
 
+.block-container {
+    max-width: 1200px;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+# =====================================================
+# HERO
+# =====================================================
 
 st.markdown("""
 <div class="hero">
@@ -86,26 +126,66 @@ st.markdown("""
 </div>
 
 <div class="hero-subtitle">
-Train, Compare, and Deploy Models — No Code Required
+Build Machine Learning Models Automatically | Compare Algorithms | Deploy Faster
 </div>
 
 </div>
 """, unsafe_allow_html=True)
 
+# =====================================================
+# FEATURE BOXES
+# =====================================================
 
+c1, c2, c3, c4 = st.columns(4)
 
-f1, f2, f3, f4 = st.columns(4)
+c1.markdown(
+    '<div class="card">⚡ Fast Model Training<br><small>Train multiple ML models instantly</small></div>',
+    unsafe_allow_html=True
+)
 
-f1.markdown('<div class="feature-box">⚡ Fast Training</div>', unsafe_allow_html=True)
-f2.markdown('<div class="feature-box">🤖 Auto Model Selection</div>', unsafe_allow_html=True)
-f3.markdown('<div class="feature-box">📊 Smart Analytics</div>', unsafe_allow_html=True)
-f4.markdown('<div class="feature-box">☁️ Cloud Ready</div>', unsafe_allow_html=True)
+c2.markdown(
+    '<div class="card">🤖 Smart Model Selection<br><small>Automatically finds best algorithm</small></div>',
+    unsafe_allow_html=True
+)
 
-# ----------------------------------------------------
-# ORIGINAL APP (UNCHANGED)
-# ----------------------------------------------------
+c3.markdown(
+    '<div class="card">📊 Insightful Analytics<br><small>Visualize performance & features</small></div>',
+    unsafe_allow_html=True
+)
 
-st.sidebar.markdown("## 📂 Upload Dataset")
+c4.markdown(
+    '<div class="card">☁️ Deployment Ready<br><small>Production-ready ML pipeline</small></div>',
+    unsafe_allow_html=True
+)
+
+# =====================================================
+# PROJECT DESCRIPTION SECTION (NEW ATTRACTIVE DETAILS)
+# =====================================================
+
+st.markdown("### About This Project")
+
+info1, info2, info3 = st.columns(3)
+
+info1.markdown(
+    '<div class="info-card">\n<b>AutoML Engine</b><br>\nAutomatically preprocesses data, selects features, and trains multiple machine learning models without manual coding.\n</div>',
+    unsafe_allow_html=True
+)
+
+info2.markdown(
+    '<div class="info-card">\n<b>Model Comparison</b><br>\nCompares performance metrics like Accuracy and RMSE to identify the best performing model automatically.\n</div>',
+    unsafe_allow_html=True
+)
+
+info3.markdown(
+    '<div class="info-card">\n<b>Prediction System</b><br>\nGenerate predictions using trained models with real-time user inputs and clustering insights.\n</div>',
+    unsafe_allow_html=True
+)
+
+# =====================================================
+# ORIGINAL LOGIC (UNCHANGED)
+# =====================================================
+
+st.sidebar.markdown("## Upload Dataset")
 
 file = st.sidebar.file_uploader(
     "Upload CSV",
@@ -119,16 +199,16 @@ if file:
 
     df = st.session_state.df
 
-    st.success("✅ Dataset Loaded Successfully")
+    st.success("Dataset Loaded Successfully")
 
-    st.subheader("📊 Dataset Preview")
+    st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
     col1, col2 = st.columns(2)
 
-    col1.write(f"📐 Shape: {df.shape}")
+    col1.write(f"Shape: {df.shape}")
 
-    col2.write("❗ Missing Values")
+    col2.write("Missing Values")
 
     col2.dataframe(
         df.isnull().sum().to_frame("Count")
@@ -141,7 +221,7 @@ if file:
     if len(numeric_cols) > 0:
 
         col = st.selectbox(
-            "📈 Distribution Column",
+            "Distribution Column",
             numeric_cols
         )
 
@@ -149,8 +229,7 @@ if file:
             px.histogram(df, x=col)
         )
 
-    # ---------------- Preprocessing ----------------
-    st.subheader("🧹 Preprocessing")
+    st.subheader("Preprocessing")
 
     fill_cols = st.multiselect("Columns", df.columns)
 
@@ -179,9 +258,9 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-        st.success("✅ Missing Values Handled")
+        st.success("Missing Values Handled")
 
-    # ---------------- Encoding ----------------
+# ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
 
     encode_cols = st.multiselect("Categorical Columns", cat_cols)
@@ -217,6 +296,7 @@ if file:
         "🧠 Select Learning Type",
         ["Supervised","Unsupervised"]
     )
+
 
 # =========================================================
 # SUPERVISED
