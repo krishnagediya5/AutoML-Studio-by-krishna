@@ -31,11 +31,11 @@ from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
 from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 
-from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error
-
-# =====================================================
-# PAGE CONFIG (MUST BE FIRST STREAMLIT COMMAND)
-# =====================================================
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    mean_squared_error
+)
 
 st.set_page_config(
     page_title="AutoML Studio",
@@ -43,97 +43,56 @@ st.set_page_config(
     layout="wide"
 )
 
-# =====================================================
-# THEME TOGGLE (ERROR-FREE)
-# =====================================================
-
-if "theme_mode" not in st.session_state:
-    st.session_state.theme_mode = "Light"
-
-with st.sidebar:
-    theme_toggle = st.toggle("🌙 Dark Mode")
-
-    if theme_toggle:
-        st.session_state.theme_mode = "Dark"
-    else:
-        st.session_state.theme_mode = "Light"
-
-# =====================================================
-# GLOBAL STYLING (SAFE CSS)
-# =====================================================
+# ----------------------------------------------------
+# PREMIUM HERO UI (REPLACE OLD HERO)
+# ----------------------------------------------------
 
 st.markdown("""
 <style>
 
-.stApp {
-    background: linear-gradient(180deg,#f8fafc,rgba(99,102,241,0.08));
-}
-
 .hero {
-    background: linear-gradient(135deg,#1d4ed8,#7c3aed);
-    padding: 48px;
-    border-radius: 22px;
-    margin-bottom: 32px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-
     background: linear-gradient(135deg,#2563eb,#7c3aed);
-    padding: 42px;
-    border-radius: 20px;
+    padding: 36px;
+    border-radius: 16px;
     margin-bottom: 28px;
 }
 
 .hero-title {
-    font-size: 46px;
+    font-size: 44px;
     font-weight: 800;
     color: white;
 }
 
 .hero-subtitle {
     font-size: 18px;
-    color: #e0e7ff;
+    color: #e2e8f0;
+    margin-top: 8px;
 }
 
-.feature-box {
-    background: white;
-    padding: 18px;
-    border-radius: 16px;
-    text-align: center;
-    font-weight: 600;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.08);
-    transition: all 0.25s ease;
-}
-
-.feature-box:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 14px 28px rgba(0,0,0,0.12);
-}
-    background: white;
-    padding: 16px;
-    border-radius: 14px;
-    text-align: center;
-    font-weight: 600;
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 25px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# =====================================================
-# HERO UI
-# =====================================================
-
 st.markdown("""
 <div class="hero">
 
 <div class="hero-title">
-AutoML Studio
+🚀 AutoML Studio
 </div>
 
 <div class="hero-subtitle">
-Train, Compare, and Deploy Machine Learning Models - Beautifully and Instantly
+Train, Compare, and Deploy Models — No Code Required
 </div>
 
 </div>
 """, unsafe_allow_html=True)
+
+
 
 f1, f2, f3, f4 = st.columns(4)
 
@@ -142,9 +101,9 @@ f2.markdown('<div class="feature-box">🤖 Auto Model Selection</div>', unsafe_a
 f3.markdown('<div class="feature-box">📊 Smart Analytics</div>', unsafe_allow_html=True)
 f4.markdown('<div class="feature-box">☁️ Cloud Ready</div>', unsafe_allow_html=True)
 
-# =====================================================
-# ORIGINAL LOGIC (UNCHANGED)
-# =====================================================
+# ----------------------------------------------------
+# ORIGINAL APP (UNCHANGED)
+# ----------------------------------------------------
 
 st.sidebar.markdown("## 📂 Upload Dataset")
 
@@ -160,16 +119,16 @@ if file:
 
     df = st.session_state.df
 
-    st.success("Dataset Loaded Successfully")
+    st.success("✅ Dataset Loaded Successfully")
 
-    st.subheader("Dataset Preview")
+    st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
     col1, col2 = st.columns(2)
 
-    col1.write(f"Shape: {df.shape}")
+    col1.write(f"📐 Shape: {df.shape}")
 
-    col2.write("Missing Values")
+    col2.write("❗ Missing Values")
 
     col2.dataframe(
         df.isnull().sum().to_frame("Count")
@@ -182,7 +141,7 @@ if file:
     if len(numeric_cols) > 0:
 
         col = st.selectbox(
-            "Distribution Column",
+            "📈 Distribution Column",
             numeric_cols
         )
 
@@ -190,7 +149,8 @@ if file:
             px.histogram(df, x=col)
         )
 
-    st.subheader("Preprocessing")
+    # ---------------- Preprocessing ----------------
+    st.subheader("🧹 Preprocessing")
 
     fill_cols = st.multiselect("Columns", df.columns)
 
@@ -219,8 +179,9 @@ if file:
                 df[col] = df[col].bfill()
 
         st.session_state.df = df
-        st.success("Missing Values Handled")
+        st.success("✅ Missing Values Handled")
 
+    # ---------------- Encoding ----------------
     cat_cols = df.select_dtypes(include="object").columns
 
     encode_cols = st.multiselect("Categorical Columns", cat_cols)
@@ -231,8 +192,9 @@ if file:
             df[col] = LabelEncoder().fit_transform(df[col].astype(str))
 
         st.session_state.df = df
-        st.success("Encoding Applied")
+        st.success("✅ Encoding Applied")
 
+    # ---------------- Scaling ----------------
     num_cols = df.select_dtypes(include=np.number).columns
 
     scale_cols = st.multiselect("Columns for Scaling", num_cols)
@@ -249,21 +211,20 @@ if file:
         df[scale_cols] = scaler.fit_transform(df[scale_cols])
 
         st.session_state.df = df
-        st.success("Scaling Applied")
+        st.success("✅ Scaling Applied")
 
     learning_type = st.radio(
-        "Select Learning Type",
+        "🧠 Select Learning Type",
         ["Supervised","Unsupervised"]
     )
 
-
-    # =====================================================
-    # SUPERVISED
-    # =====================================================
+# =========================================================
+# SUPERVISED
+# =========================================================
 
     if learning_type == "Supervised":
 
-        st.subheader("Model Setup")
+        st.subheader("⚙️ Model Setup")
 
         target = st.selectbox("Target Column", df.columns)
 
@@ -279,7 +240,7 @@ if file:
         else:
             task = "Regression"
 
-        st.write(f"Task: {task}")
+        st.write(f"🎯 Task: {task}")
 
         k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
 
@@ -298,7 +259,7 @@ if file:
             X,y,test_size=0.2,random_state=42
         )
 
-        st.subheader("Model Leaderboard")
+        st.subheader("🏆 Model Leaderboard")
 
         results=[]
         best_model=None
@@ -341,6 +302,27 @@ if file:
 
             st.success(f"Best Model Selected: {best_model_name}")
 
+            # ---------------- FEATURE IMPORTANCE (SUPERVISED) ----------------
+            if hasattr(best_model, "feature_importances_"):
+
+                st.subheader("⭐ Feature Importance")
+
+                importance = best_model.feature_importances_
+
+                fi_df = pd.DataFrame({
+                    "Feature": selected_features,
+                    "Importance": importance
+                })
+
+                fig_imp = px.bar(
+                    fi_df,
+                    x="Feature",
+                    y="Importance",
+                    title="Feature Importance"
+                )
+
+                st.plotly_chart(fig_imp)
+
         else:
 
             best_score=float("inf")
@@ -379,13 +361,52 @@ if file:
 
             st.success(f"Best Model Selected: {best_model_name}")
 
-    # =====================================================
-    # UNSUPERVISED
-    # =====================================================
+            # ---------------- FEATURE IMPORTANCE (SUPERVISED REGRESSION) ----------------
+            if hasattr(best_model, "feature_importances_"):
+
+                st.subheader("⭐ Feature Importance")
+
+                importance = best_model.feature_importances_
+
+                fi_df = pd.DataFrame({
+                    "Feature": selected_features,
+                    "Importance": importance
+                })
+
+                fig_imp = px.bar(
+                    fi_df,
+                    x="Feature",
+                    y="Importance",
+                    title="Feature Importance"
+                )
+
+                st.plotly_chart(fig_imp)
+            st.subheader("🧑‍💻 User Input Prediction")
+
+            user_data = {}
+
+            for col in selected_features:
+                val = st.number_input(
+                    f"Enter value for {col}",
+                    value=0.0
+                )
+                user_data[col] = val
+
+            if st.button("Predict"):
+
+                input_df = pd.DataFrame([user_data])
+
+                prediction = best_model.predict(input_df)
+
+                st.success(f"Prediction: {prediction[0]}")
+
+# =========================================================
+# UNSUPERVISED
+# =========================================================
 
     else:
 
-        st.subheader("Unsupervised Model Leaderboard")
+        st.subheader("🧠 Unsupervised Model Leaderboard")
 
         data = df.select_dtypes(include=np.number)
 
@@ -439,6 +460,116 @@ if file:
         st.success(
             f"Best Clustering Model: {best_model_name}"
         )
+
+        df["Cluster"] = best_labels
+
+        pca = PCA(n_components=2)
+
+        reduced = pca.fit_transform(data_scaled)
+
+        plot_df = pd.DataFrame(
+            reduced,
+            columns=["PC1","PC2"]
+        )
+
+        plot_df["Cluster"] = best_labels
+
+        fig = px.scatter(
+            plot_df,
+            x="PC1",
+            y="PC2",
+            color="Cluster",
+            title="Cluster Visualization"
+        )
+
+        st.plotly_chart(fig)
+
+        # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
+        st.subheader("⭐ Feature Importance (Unsupervised)")
+
+        pca_imp = PCA(n_components=2)
+        pca_imp.fit(data_scaled)
+
+        importance_values = np.mean(
+            np.abs(pca_imp.components_),
+            axis=0
+        )
+
+        fi_unsup_df = pd.DataFrame({
+            "Feature": data.columns,
+            "Importance": importance_values
+        })
+
+        fig_unsup_imp = px.bar(
+            fi_unsup_df,
+            x="Feature",
+            y="Importance",
+            title="Unsupervised Feature Importance"
+        )
+
+        st.plotly_chart(fig_unsup_imp)
+        st.subheader("🧑‍💻 User Input Cluster Prediction")
+    
+        user_data = {}
+        
+        for col in data.columns:
+        
+            val = st.number_input(
+                f"Enter value for {col}",
+                value=0.0,
+                key=f"unsup_{col}"
+            )
+        
+            user_data[col] = val
+        
+        if st.button("Predict Cluster"):
+        
+            input_df = pd.DataFrame(
+                [user_data]
+            )
+        
+            input_scaled = scaler.transform(
+                input_df
+            )
+        
+            if best_model_name == "KMeans":
+        
+                model = KMeans(
+                    n_clusters=3
+                )
+        
+                model.fit(data_scaled)
+        
+                cluster = model.predict(
+                    input_scaled
+                )
+        
+                st.success(
+                    f"Predicted Cluster: {cluster[0]}"
+                )
+        
+            elif best_model_name == "Birch":
+        
+                model = Birch(
+                    n_clusters=3
+                )
+        
+                model.fit(data_scaled)
+        
+                cluster = model.predict(
+                    input_scaled
+                )
+        
+                st.success(
+                    f"Predicted Cluster: {cluster[0]}"
+                )
+        
+            else:
+        
+                st.warning(
+                    "Prediction not supported for this clustering algorithm"
+                )
+
 else:
 
     st.info("Upload dataset to start AutoML")
