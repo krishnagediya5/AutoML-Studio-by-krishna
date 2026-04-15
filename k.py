@@ -643,171 +643,171 @@ if file:
     # UNSUPERVISED
     # =========================
 
-    else:
-
-        st.subheader("🧠 Unsupervised Model Leaderboard")
-
-        data = df.select_dtypes(include=np.number)
-
-        scaler = StandardScaler()
-
-        data_scaled = scaler.fit_transform(data)
-
-        models = {
-            "KMeans": KMeans(n_clusters=3),
-            "Agglomerative": AgglomerativeClustering(n_clusters=3),
-            "Birch": Birch(n_clusters=3),
-            "DBSCAN": DBSCAN()
-        }
-
-        results=[]
-        best_score=-1
-
-        for name,model in models.items():
-
-            labels = model.fit_predict(data_scaled)
-
-            if len(set(labels)) > 1:
-
-                score = silhouette_score(
-                    data_scaled,
-                    labels
-                )
-
-            else:
-
-                score = -1
-
-            results.append([name,score])
-
-            if score > best_score:
-
-                best_score = score
-                best_model_name = name
-                best_labels = labels
-
-        res = pd.DataFrame(
-            results,
-            columns=[
-                "Algorithm",
-                "Silhouette Score"
-            ]
-        )
-
-        st.dataframe(res)
-
-        st.success(
-            f"Best Clustering Model: {best_model_name}"
-        )
-
-        df["Cluster"] = best_labels
-
-        pca = PCA(n_components=2)
-
-        reduced = pca.fit_transform(data_scaled)
-
-        plot_df = pd.DataFrame(
-            reduced,
-            columns=["PC1","PC2"]
-        )
-
-        plot_df["Cluster"] = best_labels
-
-        fig = px.scatter(
-            plot_df,
-            x="PC1",
-            y="PC2",
-            color="Cluster",
-            title="Cluster Visualization"
-        )
-
-        st.plotly_chart(fig)
-
-        # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
-        st.subheader("⭐ Feature Importance (Unsupervised)")
-
-        pca_imp = PCA(n_components=2)
-        pca_imp.fit(data_scaled)
-
-        importance_values = np.mean(
-            np.abs(pca_imp.components_),
-            axis=0
-        )
-
-        fi_unsup_df = pd.DataFrame({
-            "Feature": data.columns,
-            "Importance": importance_values
-        })
-
-        fig_unsup_imp = px.bar(
-            fi_unsup_df,
-            x="Feature",
-            y="Importance",
-            title="Unsupervised Feature Importance"
-        )
-
-        st.plotly_chart(fig_unsup_imp)
-        st.subheader("🧑‍💻 User Input Cluster Prediction")
+        else:
     
-        user_data = {}
-        
-        for col in data.columns:
-        
-            val = st.number_input(
-                f"Enter value for {col}",
-                value=0.0,
-                key=f"unsup_{col}"
+            st.subheader("🧠 Unsupervised Model Leaderboard")
+    
+            data = df.select_dtypes(include=np.number)
+    
+            scaler = StandardScaler()
+    
+            data_scaled = scaler.fit_transform(data)
+    
+            models = {
+                "KMeans": KMeans(n_clusters=3),
+                "Agglomerative": AgglomerativeClustering(n_clusters=3),
+                "Birch": Birch(n_clusters=3),
+                "DBSCAN": DBSCAN()
+            }
+    
+            results=[]
+            best_score=-1
+    
+            for name,model in models.items():
+    
+                labels = model.fit_predict(data_scaled)
+    
+                if len(set(labels)) > 1:
+    
+                    score = silhouette_score(
+                        data_scaled,
+                        labels
+                    )
+    
+                else:
+    
+                    score = -1
+    
+                results.append([name,score])
+    
+                if score > best_score:
+    
+                    best_score = score
+                    best_model_name = name
+                    best_labels = labels
+    
+            res = pd.DataFrame(
+                results,
+                columns=[
+                    "Algorithm",
+                    "Silhouette Score"
+                ]
             )
-        
-            user_data[col] = val
-        
-        if st.button("Predict Cluster"):
-        
-            input_df = pd.DataFrame(
-                [user_data]
+    
+            st.dataframe(res)
+    
+            st.success(
+                f"Best Clustering Model: {best_model_name}"
             )
-        
-            input_scaled = scaler.transform(
-                input_df
+    
+            df["Cluster"] = best_labels
+    
+            pca = PCA(n_components=2)
+    
+            reduced = pca.fit_transform(data_scaled)
+    
+            plot_df = pd.DataFrame(
+                reduced,
+                columns=["PC1","PC2"]
             )
+    
+            plot_df["Cluster"] = best_labels
+    
+            fig = px.scatter(
+                plot_df,
+                x="PC1",
+                y="PC2",
+                color="Cluster",
+                title="Cluster Visualization"
+            )
+    
+            st.plotly_chart(fig)
+    
+            # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
+            st.subheader("⭐ Feature Importance (Unsupervised)")
+    
+            pca_imp = PCA(n_components=2)
+            pca_imp.fit(data_scaled)
+    
+            importance_values = np.mean(
+                np.abs(pca_imp.components_),
+                axis=0
+            )
+    
+            fi_unsup_df = pd.DataFrame({
+                "Feature": data.columns,
+                "Importance": importance_values
+            })
+    
+            fig_unsup_imp = px.bar(
+                fi_unsup_df,
+                x="Feature",
+                y="Importance",
+                title="Unsupervised Feature Importance"
+            )
+    
+            st.plotly_chart(fig_unsup_imp)
+            st.subheader("🧑‍💻 User Input Cluster Prediction")
         
-            if best_model_name == "KMeans":
-        
-                model = KMeans(
-                    n_clusters=3
+            user_data = {}
+            
+            for col in data.columns:
+            
+                val = st.number_input(
+                    f"Enter value for {col}",
+                    value=0.0,
+                    key=f"unsup_{col}"
                 )
-        
-                model.fit(data_scaled)
-        
-                cluster = model.predict(
-                    input_scaled
+            
+                user_data[col] = val
+            
+            if st.button("Predict Cluster"):
+            
+                input_df = pd.DataFrame(
+                    [user_data]
                 )
-        
-                st.success(
-                    f"Predicted Cluster: {cluster[0]}"
+            
+                input_scaled = scaler.transform(
+                    input_df
                 )
-        
-            elif best_model_name == "Birch":
-        
-                model = Birch(
-                    n_clusters=3
-                )
-        
-                model.fit(data_scaled)
-        
-                cluster = model.predict(
-                    input_scaled
-                )
-        
-                st.success(
-                    f"Predicted Cluster: {cluster[0]}"
-                )
-        
-            else:
-        
-                st.warning(
-                    "Prediction not supported for this clustering algorithm"
-                )
+            
+                if best_model_name == "KMeans":
+            
+                    model = KMeans(
+                        n_clusters=3
+                    )
+            
+                    model.fit(data_scaled)
+            
+                    cluster = model.predict(
+                        input_scaled
+                    )
+            
+                    st.success(
+                        f"Predicted Cluster: {cluster[0]}"
+                    )
+            
+                elif best_model_name == "Birch":
+            
+                    model = Birch(
+                        n_clusters=3
+                    )
+            
+                    model.fit(data_scaled)
+            
+                    cluster = model.predict(
+                        input_scaled
+                    )
+            
+                    st.success(
+                        f"Predicted Cluster: {cluster[0]}"
+                    )
+            
+                else:
+            
+                    st.warning(
+                        "Prediction not supported for this clustering algorithm"
+                    )
 else:
 
     st.info(
