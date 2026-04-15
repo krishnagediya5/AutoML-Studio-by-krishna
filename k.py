@@ -449,6 +449,44 @@ if file:
             st.dataframe(res)
 
             st.success(f"Best Model Selected: {best_model_name}")
+            if hasattr(best_model, "feature_importances_"):
+
+                st.subheader("⭐ Feature Importance")
+
+                importance = best_model.feature_importances_
+
+                fi_df = pd.DataFrame({
+                    "Feature": selected_features,
+                    "Importance": importance
+                })
+
+                fig_imp = px.bar(
+                    fi_df,
+                    x="Feature",
+                    y="Importance",
+                    title="Feature Importance"
+                )
+
+                st.plotly_chart(fig_imp)
+            st.subheader("🧑‍💻 User Input Prediction")
+
+            user_data = {}
+
+            for col in selected_features:
+                val = st.number_input(
+                    f"Enter value for {col}",
+                    value=0.0
+                )
+                user_data[col] = val
+
+            if st.button("Predict"):
+
+                input_df = pd.DataFrame([user_data])
+
+                prediction = best_model.predict(input_df)
+
+                st.success(f"Prediction: {prediction[0]}")
+
 
     else:
 
