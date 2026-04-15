@@ -467,7 +467,7 @@ if learning_type == "Supervised":
     
             task = "Classification"
 
-else:
+ else:
 
         task = "Regression"
 
@@ -636,7 +636,7 @@ else:
     # UNSUPERVISED
     # =========================
 
-     else:
+else:
     
             st.subheader("🧠 Unsupervised Model Leaderboard")
     
