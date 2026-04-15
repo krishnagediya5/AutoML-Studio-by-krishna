@@ -437,6 +437,10 @@ if file:
     # LEARNING TYPE
     # =========================
 
+    # =========================
+# LEARNING TYPE
+# =========================
+
     learning_type = st.radio(
         "Select Learning Type",
         [
@@ -444,24 +448,35 @@ if file:
             "Unsupervised"
         ]
     )
-
-     if learning_type == "Supervised":
-
-        st.subheader("⚙️ Model Setup")
-
-        target = st.selectbox("Target Column", df.columns)
-
-        df = df.dropna(subset=[target])
-
-        X = df.drop(columns=[target])
+    
+    # CORRECT INDENTATION
+    
+    if learning_type == "Supervised":
+    
+        target = st.selectbox(
+            "Select Target Column",
+            df.columns
+        )
+    
+        df = df.dropna(
+            subset=[target]
+        )
+    
+        X = df.drop(
+            columns=[target]
+        )
+    
         y = df[target]
-
+    
         target_type = type_of_target(y)
-
+    
         if target_type in ["binary", "multiclass"]:
+    
             task = "Classification"
-        else:
-            task = "Regression"
+
+    else:
+
+        task = "Regression"
 
         st.write(f"🎯 Task: {task}")
 
