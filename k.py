@@ -4,7 +4,6 @@ import numpy as np
 import plotly.express as px
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
-from sklearn.feature_selection import SelectKBest, f_classif, f_regression
 from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
 
@@ -40,7 +39,7 @@ st.set_page_config(
 )
 
 # =====================================================
-# ADVANCED PREMIUM UI
+# PREMIUM UI STYLE
 # =====================================================
 
 st.markdown("""
@@ -52,12 +51,11 @@ html, body, [class*="css"] {
     font-family: 'Poppins', sans-serif;
 }
 
-/* MAIN BACKGROUND */
+/* BACKGROUND */
 
 .stApp {
     background:
-    radial-gradient(circle at 20% 20%, #0f172a, #020617),
-    linear-gradient(180deg,#020617,#020617);
+    radial-gradient(circle at 20% 20%, #0f172a, #020617);
 }
 
 /* HERO */
@@ -67,11 +65,8 @@ html, body, [class*="css"] {
         135deg,
         #2563eb,
         #7c3aed,
-        #9333ea,
-        #2563eb
+        #9333ea
     );
-    background-size: 300% 300%;
-    animation: gradientMove 8s ease infinite;
 
     padding: 60px;
     border-radius: 24px;
@@ -79,12 +74,6 @@ html, body, [class*="css"] {
 
     box-shadow:
         0 10px 40px rgba(0,0,0,0.5);
-}
-
-@keyframes gradientMove {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
 }
 
 .hero-title {
@@ -96,15 +85,20 @@ html, body, [class*="css"] {
 .hero-subtitle {
     font-size: 18px;
     color: #e2e8f0;
-    margin-top: 8px;
 }
 
 /* CARDS */
 
 .card {
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(14px);
+
+    background:
+    rgba(255,255,255,0.06);
+
+    backdrop-filter:
+    blur(14px);
+
     padding: 24px;
+
     border-radius: 18px;
 
     text-align: center;
@@ -115,15 +109,17 @@ html, body, [class*="css"] {
 
     transition: 0.3s;
 
-    border: 1px solid rgba(255,255,255,0.08);
+    border:
+    1px solid rgba(255,255,255,0.08);
 }
 
 .card:hover {
 
-    transform: translateY(-8px) scale(1.02);
+    transform:
+    translateY(-8px);
 
     box-shadow:
-        0 15px 35px rgba(0,0,0,0.5);
+    0 15px 35px rgba(0,0,0,0.5);
 }
 
 /* SIDEBAR */
@@ -131,16 +127,53 @@ html, body, [class*="css"] {
 section[data-testid="stSidebar"] {
 
     background:
-
     linear-gradient(
         180deg,
-        #020617,
         #020617,
         #0f172a
     );
 
     border-right:
-        1px solid rgba(255,255,255,0.08);
+    1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-title {
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    color: white;
+
+    text-align: center;
+
+    padding: 14px;
+
+    border-radius: 12px;
+
+    background:
+    linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    );
+
+    margin-bottom: 18px;
+}
+
+.sidebar-card {
+
+    background:
+    rgba(255,255,255,0.05);
+
+    padding: 18px;
+
+    border-radius: 14px;
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+    margin-bottom: 14px;
 }
 
 /* BUTTON */
@@ -148,11 +181,11 @@ section[data-testid="stSidebar"] {
 .stButton > button {
 
     background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #7c3aed
-        );
+    linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    );
 
     color: white;
 
@@ -169,22 +202,8 @@ section[data-testid="stSidebar"] {
 
 .stButton > button:hover {
 
-    transform: scale(1.05);
-
-    box-shadow:
-        0 8px 18px rgba(0,0,0,0.5);
-}
-
-/* DATAFRAME */
-
-[data-testid="stDataFrame"] {
-
-    border-radius: 16px;
-
-    overflow: hidden;
-
-    border:
-        1px solid rgba(255,255,255,0.08);
+    transform:
+    scale(1.05);
 }
 
 /* FOOTER */
@@ -200,12 +219,37 @@ section[data-testid="stSidebar"] {
     color: #9ca3af;
 
     border-top:
-        1px solid rgba(255,255,255,0.08);
+    1px solid rgba(255,255,255,0.08);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+# =====================================================
+# SIDEBAR
+# =====================================================
+
+st.sidebar.markdown(
+    '<div class="sidebar-title">🚀 AutoML Studio</div>',
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown(
+    '<div class="sidebar-card">',
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown("### 📂 Upload Dataset")
+
+file = st.sidebar.file_uploader(
+    "Upload CSV",
+    type=["csv"]
+)
+
+st.sidebar.markdown(
+    "</div>",
+    unsafe_allow_html=True
+)
 
 # =====================================================
 # HERO
@@ -213,7 +257,10 @@ section[data-testid="stSidebar"] {
 
 st.markdown("""
 <div class="hero">
-<div class="hero-title">🚀 AutoML Studio</div>
+
+<div class="hero-title">
+🚀 AutoML Studio
+</div>
 
 <div class="hero-subtitle">
 Enterprise-Grade Machine Learning Automation • Intelligent Model Optimization • Advanced Predictive Analytics Platform
@@ -224,25 +271,33 @@ Enterprise-Grade Machine Learning Automation • Intelligent Model Optimization 
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.markdown('<div class="card">⚡ High-Performance Training Engine</div>', unsafe_allow_html=True)
-c2.markdown('<div class="card">🤖 Intelligent Model Optimization</div>', unsafe_allow_html=True)
-c3.markdown('<div class="card">📊 Advanced Data Intelligence</div>', unsafe_allow_html=True)
-c4.markdown('<div class="card">🧠 Smart Pattern Discovery</div>', unsafe_allow_html=True)
+c1.markdown(
+    '<div class="card">⚡ High-Performance Training Engine</div>',
+    unsafe_allow_html=True
+)
+
+c2.markdown(
+    '<div class="card">🤖 Intelligent Model Optimization</div>',
+    unsafe_allow_html=True
+)
+
+c3.markdown(
+    '<div class="card">📊 Advanced Data Intelligence</div>',
+    unsafe_allow_html=True
+)
+
+c4.markdown(
+    '<div class="card">🧠 Smart Pattern Discovery</div>',
+    unsafe_allow_html=True
+)
 
 st.markdown("---")
 
-
 # =====================================================
-# FILE UPLOAD
+# MAIN LOGIC (UNCHANGED)
 # =====================================================
-
-st.sidebar.markdown("## 📂 Upload Dataset")
-
-file = st.sidebar.file_uploader(
-    "Upload CSV",
-    type=["csv"]
-)
 if file:
+
     if "df" not in st.session_state:
         st.session_state.df = pd.read_csv(file)
 
@@ -277,10 +332,9 @@ if file:
         st.plotly_chart(
             px.histogram(df, x=col)
         )
-
-    # =====================================================
+    # =========================
     # PREPROCESSING
-    # =====================================================
+    # =========================
 
     st.subheader("Preprocessing")
 
@@ -326,11 +380,13 @@ if file:
 
         st.success("Missing Values Handled")
 
-    # =====================================================
+    # =========================
     # ENCODING
-    # =====================================================
+    # =========================
 
-    cat_cols = df.select_dtypes(include="object").columns
+    cat_cols = df.select_dtypes(
+        include="object"
+    ).columns
 
     encode_cols = st.multiselect(
         "Categorical Columns",
@@ -347,9 +403,9 @@ if file:
 
         st.success("Encoding Applied")
 
-    # =====================================================
+    # =========================
     # SCALING
-    # =====================================================
+    # =========================
 
     num_cols = df.select_dtypes(
         include=np.number
@@ -384,9 +440,9 @@ if file:
 
         st.success("Scaling Applied")
 
-    # =====================================================
+    # =========================
     # LEARNING TYPE
-    # =====================================================
+    # =========================
 
     learning_type = st.radio(
         "Select Learning Type",
@@ -396,9 +452,9 @@ if file:
         ]
     )
 
-    # =====================================================
+    # =========================
     # SUPERVISED
-    # =====================================================
+    # =========================
 
     if learning_type == "Supervised":
 
@@ -605,9 +661,9 @@ if file:
                     f"Best Model Selected: {best_model_name}"
                 )
 
-    # =====================================================
+    # =========================
     # UNSUPERVISED
-    # =====================================================
+    # =========================
 
     else:
 
@@ -738,9 +794,7 @@ if file:
                     title="Cluster Visualization"
                 )
 
-                st.plotly_chart(
-                    fig
-                )
+                st.plotly_chart(fig)
 
 else:
 
