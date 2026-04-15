@@ -39,25 +39,45 @@ st.set_page_config(
 )
 
 # =====================================================
-# STYLE
+# PREMIUM UI STYLE
 # =====================================================
 
 st.markdown("""
 <style>
 
-.stApp {
-    background: radial-gradient(circle at 20% 20%, #0f172a, #020617);
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Poppins', sans-serif;
 }
 
+/* BACKGROUND */
+
+.stApp {
+    background:
+    radial-gradient(circle at 20% 20%, #0f172a, #020617);
+}
+
+/* HERO */
+
 .hero {
-    background: linear-gradient(135deg,#2563eb,#7c3aed,#9333ea);
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed,
+        #9333ea
+    );
+
     padding: 60px;
     border-radius: 24px;
-    margin-bottom: 25px;
+    margin-bottom: 28px;
+
+    box-shadow:
+        0 10px 40px rgba(0,0,0,0.5);
 }
 
 .hero-title {
-    font-size: 46px;
+    font-size: 48px;
     font-weight: 800;
     color: white;
 }
@@ -67,42 +87,139 @@ st.markdown("""
     color: #e2e8f0;
 }
 
-.metric-card {
-    background: rgba(255,255,255,0.06);
-    padding: 22px;
-    border-radius: 16px;
-    text-align: center;
-    border: 1px solid rgba(255,255,255,0.08);
-}
-
-.metric-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: white;
-}
-
-.metric-label {
-    font-size: 14px;
-    color: #94a3b8;
-}
+/* CARDS */
 
 .card {
-    background: rgba(255,255,255,0.06);
-    padding: 18px;
-    border-radius: 14px;
+
+    background:
+    rgba(255,255,255,0.06);
+
+    backdrop-filter:
+    blur(14px);
+
+    padding: 24px;
+
+    border-radius: 18px;
+
     text-align: center;
+
     color: white;
+
+    font-weight: 600;
+
+    transition: 0.3s;
+
+    border:
+    1px solid rgba(255,255,255,0.08);
 }
+
+.card:hover {
+
+    transform:
+    translateY(-8px);
+
+    box-shadow:
+    0 15px 35px rgba(0,0,0,0.5);
+}
+
+/* SIDEBAR */
 
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg,#020617,#0f172a);
+
+    background:
+    linear-gradient(
+        180deg,
+        #020617,
+        #0f172a
+    );
+
+    border-right:
+    1px solid rgba(255,255,255,0.08);
 }
 
-.footer {
-    margin-top: 50px;
-    padding: 18px;
+.sidebar-title {
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    color: white;
+
     text-align: center;
+
+    padding: 14px;
+
+    border-radius: 12px;
+
+    background:
+    linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    );
+
+    margin-bottom: 18px;
+}
+
+.sidebar-card {
+
+    background:
+    rgba(255,255,255,0.05);
+
+    padding: 18px;
+
+    border-radius: 14px;
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+    margin-bottom: 14px;
+}
+
+/* BUTTON */
+
+.stButton > button {
+
+    background:
+    linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    );
+
+    color: white;
+
+    border: none;
+
+    padding: 0.6rem 1.2rem;
+
+    border-radius: 10px;
+
+    font-weight: 600;
+
+    transition: 0.25s;
+}
+
+.stButton > button:hover {
+
+    transform:
+    scale(1.05);
+}
+
+/* FOOTER */
+
+.footer {
+
+    margin-top: 60px;
+
+    padding: 20px;
+
+    text-align: center;
+
     color: #9ca3af;
+
+    border-top:
+    1px solid rgba(255,255,255,0.08);
 }
 
 </style>
@@ -112,11 +229,19 @@ section[data-testid="stSidebar"] {
 # SIDEBAR
 # =====================================================
 
-st.sidebar.title("🚀 AutoML Studio")
+
+
+
+st.sidebar.markdown("### 📂 Upload Dataset")
 
 file = st.sidebar.file_uploader(
-    "Upload CSV Dataset",
+    "Upload CSV",
     type=["csv"]
+)
+
+st.sidebar.markdown(
+    "</div>",
+    unsafe_allow_html=True
 )
 
 # =====================================================
@@ -125,83 +250,81 @@ file = st.sidebar.file_uploader(
 
 st.markdown("""
 <div class="hero">
-<div class="hero-title">🚀 AutoML Studio</div>
-<div class="hero-subtitle">
-Automated Machine Learning • Smart Model Selection • Fast Predictions
+
+<div class="hero-title">
+🚀 AutoML Studio
 </div>
+
+<div class="hero-subtitle">
+Enterprise-Grade Machine Learning Automation • Intelligent Model Optimization • Advanced Predictive Analytics Platform
+</div>
+
 </div>
 """, unsafe_allow_html=True)
 
+c1, c2, c3, c4 = st.columns(4)
+
+c1.markdown(
+    '<div class="card">⚡ High-Performance Training Engine</div>',
+    unsafe_allow_html=True
+)
+
+c2.markdown(
+    '<div class="card">🤖 Intelligent Model Optimization</div>',
+    unsafe_allow_html=True
+)
+
+c3.markdown(
+    '<div class="card">📊 Advanced Data Intelligence</div>',
+    unsafe_allow_html=True
+)
+
+c4.markdown(
+    '<div class="card">🧠 Smart Pattern Discovery</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown("---")
+
 # =====================================================
-# PRODUCT DESCRIPTION
+# MAIN LOGIC (UNCHANGED)
 # =====================================================
+if file:
 
-st.markdown("""
-### ⚡ Built for Speed. Designed for Intelligence.
+    if "df" not in st.session_state:
+        st.session_state.df = pd.read_csv(file)
 
-Upload your dataset and instantly train multiple machine learning models.  
-Compare performance, select the best model, and visualize results — automatically.
-""")
+    df = st.session_state.df
 
-# =====================================================
-# MAIN LOGIC
-# =====================================================
+    st.success("✅ Dataset Loaded Successfully")
 
-if file is not None:
-
-    df = pd.read_csv(file)
-
-    st.success("Dataset Loaded Successfully")
-
-    # =====================================================
-    # DASHBOARD CARDS
-    # =====================================================
-
-    rows = df.shape[0]
-    cols = df.shape[1]
-    missing = df.isnull().sum().sum()
-    memory = round(df.memory_usage().sum() / 1024, 2)
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
-        st.markdown(f"""
-        <div class="metric-card">
-        <div class="metric-value">{rows}</div>
-        <div class="metric-label">Rows</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c2:
-        st.markdown(f"""
-        <div class="metric-card">
-        <div class="metric-value">{cols}</div>
-        <div class="metric-label">Columns</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c3:
-        st.markdown(f"""
-        <div class="metric-card">
-        <div class="metric-value">{missing}</div>
-        <div class="metric-label">Missing Values</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c4:
-        st.markdown(f"""
-        <div class="metric-card">
-        <div class="metric-value">{memory} KB</div>
-        <div class="metric-label">Memory Usage</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    st.subheader("Dataset Preview")
-
+    st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
 
+    col1, col2 = st.columns(2)
+
+    col1.write(f"📐 Shape: {df.shape}")
+
+    col2.write("❗ Missing Values")
+
+    col2.dataframe(
+        df.isnull().sum().to_frame("Count")
+    )
+
+    numeric_cols = df.select_dtypes(
+        include=np.number
+    ).columns
+
+    if len(numeric_cols) > 0:
+
+        col = st.selectbox(
+            "📈 Distribution Column",
+            numeric_cols
+        )
+
+        st.plotly_chart(
+            px.histogram(df, x=col)
+        )
     # =========================
     # PREPROCESSING
     # =========================
@@ -322,6 +445,10 @@ if file is not None:
         ]
     )
 
+    # =========================
+    # SUPERVISED
+    # =========================
+
     if learning_type == "Supervised":
 
         target = st.selectbox(
@@ -333,17 +460,26 @@ if file is not None:
             subset=[target]
         )
 
-        X = df.drop(columns=[target])
+        X = df.drop(
+            columns=[target]
+        )
+
         y = df[target]
 
         target_type = type_of_target(y)
 
-        if target_type in ["binary","multiclass"]:
+        if target_type in [
+            "binary",
+            "multiclass"
+        ]:
+
             task = "Classification"
+
         else:
+
             task = "Regression"
 
-        st.info(f"Detected Task Type: {task}")
+        st.subheader("Model Leaderboard")
 
         X_train, X_test, y_train, y_test = train_test_split(
             X,
@@ -357,67 +493,129 @@ if file is not None:
         if task == "Classification":
 
             models = {
-                "Logistic Regression": LogisticRegression(max_iter=1000),
-                "Random Forest": RandomForestClassifier(),
-                "Extra Trees": ExtraTreesClassifier(),
-                "Gradient Boosting": GradientBoostingClassifier(),
-                "Decision Tree": DecisionTreeClassifier(),
-                "KNN": KNeighborsClassifier(),
-                "SVM": SVC(),
-                "Naive Bayes": GaussianNB()
+
+                "Logistic Regression":
+                LogisticRegression(max_iter=1000),
+
+                "Random Forest":
+                RandomForestClassifier(),
+
+                "Extra Trees":
+                ExtraTreesClassifier(),
+
+                "Gradient Boosting":
+                GradientBoostingClassifier(),
+
+                "Decision Tree":
+                DecisionTreeClassifier(),
+
+                "KNN":
+                KNeighborsClassifier(),
+
+                "SVM":
+                SVC(),
+
+                "Naive Bayes":
+                GaussianNB()
             }
 
             best_score = 0
+
             best_model_name = None
 
             for name, model in models.items():
 
-                model.fit(X_train, y_train)
+                model.fit(
+                    X_train,
+                    y_train
+                )
 
-                preds = model.predict(X_test)
+                preds = model.predict(
+                    X_test
+                )
 
-                acc = accuracy_score(y_test, preds)
+                acc = accuracy_score(
+                    y_test,
+                    preds
+                )
 
-                results.append([name, acc])
+                results.append(
+                    [name, acc]
+                )
 
                 if acc > best_score:
+
                     best_score = acc
+
                     best_model_name = name
 
             leaderboard = pd.DataFrame(
                 results,
-                columns=["Model","Accuracy"]
+                columns=[
+                    "Model",
+                    "Accuracy"
+                ]
             ).sort_values(
                 by="Accuracy",
                 ascending=False
             )
 
-            st.dataframe(leaderboard)
+            st.dataframe(
+                leaderboard
+            )
 
-            st.success(f"Best Model: {best_model_name}")
+            if best_model_name is not None:
+
+                st.success(
+                    f"Best Model Selected: {best_model_name}"
+                )
 
         else:
 
             models = {
-                "Linear Regression": LinearRegression(),
-                "Ridge": Ridge(),
-                "Lasso": Lasso(),
-                "Random Forest": RandomForestRegressor(),
-                "Extra Trees": ExtraTreesRegressor(),
-                "Gradient Boosting": GradientBoostingRegressor(),
-                "Decision Tree": DecisionTreeRegressor(),
-                "KNN": KNeighborsRegressor(),
-                "SVR": SVR()
+
+                "Linear Regression":
+                LinearRegression(),
+
+                "Ridge":
+                Ridge(),
+
+                "Lasso":
+                Lasso(),
+
+                "Random Forest":
+                RandomForestRegressor(),
+
+                "Extra Trees":
+                ExtraTreesRegressor(),
+
+                "Gradient Boosting":
+                GradientBoostingRegressor(),
+
+                "Decision Tree":
+                DecisionTreeRegressor(),
+
+                "KNN":
+                KNeighborsRegressor(),
+
+                "SVR":
+                SVR()
             }
 
             best_score = float("inf")
+
             best_model_name = None
 
             for name, model in models.items():
 
-                model.fit(X_train, y_train)
+                model.fit(
+                    X_train,
+                    y_train
+                )
 
-                preds = model.predict(X_test)
+                preds = model.predict(
+                    X_test
+                )
 
                 rmse = np.sqrt(
                     mean_squared_error(
@@ -426,28 +624,178 @@ if file is not None:
                     )
                 )
 
-                results.append([name, rmse])
+                results.append(
+                    [name, rmse]
+                )
 
                 if rmse < best_score:
+
                     best_score = rmse
+
                     best_model_name = name
 
             leaderboard = pd.DataFrame(
                 results,
-                columns=["Model","RMSE"]
+                columns=[
+                    "Model",
+                    "RMSE"
+                ]
             ).sort_values(
                 by="RMSE"
             )
 
-            st.dataframe(leaderboard)
+            st.dataframe(
+                leaderboard
+            )
 
-            st.success(f"Best Model: {best_model_name}")
+            if best_model_name is not None:
+
+                st.success(
+                    f"Best Model Selected: {best_model_name}"
+                )
+
+    # =========================
+    # UNSUPERVISED
+    # =========================
+
+    else:
+
+        st.subheader("Unsupervised Model Leaderboard")
+
+        data = df.select_dtypes(
+            include=np.number
+        )
+
+        if data.shape[1] == 0:
+
+            st.error(
+                "No numeric columns available for clustering"
+            )
+
+        else:
+
+            scaler = StandardScaler()
+
+            data_scaled = scaler.fit_transform(
+                data
+            )
+
+            models = {
+
+                "KMeans":
+                KMeans(n_clusters=3),
+
+                "Agglomerative":
+                AgglomerativeClustering(n_clusters=3),
+
+                "Birch":
+                Birch(n_clusters=3),
+
+                "DBSCAN":
+                DBSCAN()
+            }
+
+            results = []
+
+            best_score = -1
+
+            best_model_name = None
+
+            best_labels = None
+
+            for name, model in models.items():
+
+                try:
+
+                    labels = model.fit_predict(
+                        data_scaled
+                    )
+
+                    if len(set(labels)) > 1:
+
+                        score = silhouette_score(
+                            data_scaled,
+                            labels
+                        )
+
+                    else:
+
+                        score = -1
+
+                    results.append(
+                        [name, score]
+                    )
+
+                    if score > best_score:
+
+                        best_score = score
+
+                        best_labels = labels
+
+                        best_model_name = name
+
+                except:
+
+                    results.append(
+                        [name, -1]
+                    )
+
+            leaderboard = pd.DataFrame(
+                results,
+                columns=[
+                    "Algorithm",
+                    "Silhouette Score"
+                ]
+            ).sort_values(
+                by="Silhouette Score",
+                ascending=False
+            )
+
+            st.dataframe(
+                leaderboard
+            )
+
+            if best_model_name is not None:
+
+                st.success(
+                    f"Best Clustering Model: {best_model_name}"
+                )
+
+                pca = PCA(
+                    n_components=2
+                )
+
+                reduced = pca.fit_transform(
+                    data_scaled
+                )
+
+                plot_df = pd.DataFrame(
+                    reduced,
+                    columns=[
+                        "PC1",
+                        "PC2"
+                    ]
+                )
+
+                plot_df["Cluster"] = best_labels
+
+                fig = px.scatter(
+                    plot_df,
+                    x="PC1",
+                    y="PC2",
+                    color="Cluster",
+                    title="Cluster Visualization"
+                )
+
+                st.plotly_chart(fig)
 
 else:
 
-    st.info("Upload dataset to start AutoML")
+    st.info(
+        "Upload dataset to start AutoML"
+    )
 
 st.markdown(
-    '<div class="footer">Developed by Krishna Gediya | AutoML System</div>',
+    '<div class="footer">Developed by Krishna Gediya | AutoML Application</div>',
     unsafe_allow_html=True
 )
