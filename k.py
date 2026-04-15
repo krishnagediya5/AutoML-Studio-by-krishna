@@ -638,7 +638,7 @@ else:
 
     else:
     
-            st.subheader("🧠 Unsupervised Model Leaderboard")
+        st.subheader("🧠 Unsupervised Model Leaderboard")
     
             data = df.select_dtypes(include=np.number)
     
