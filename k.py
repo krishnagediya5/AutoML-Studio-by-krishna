@@ -1,12 +1,7 @@
-# =====================================================
-# FINAL ERROR-FREE AutoML STUDIO (SAME LOGIC)
-# =====================================================
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import SelectKBest, f_classif, f_regression
@@ -33,6 +28,7 @@ from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, Birch
 from sklearn.metrics import silhouette_score, accuracy_score, mean_squared_error
 from sklearn.decomposition import PCA
 
+
 # =====================================================
 # PAGE CONFIG
 # =====================================================
@@ -44,62 +40,172 @@ st.set_page_config(
 )
 
 # =====================================================
-# STYLE
+# ADVANCED PREMIUM UI
 # =====================================================
 
 st.markdown("""
 <style>
 
-.stApp {
-    background: linear-gradient(180deg,#020617,#020617,#030712);
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Poppins', sans-serif;
 }
 
+/* MAIN BACKGROUND */
+
+.stApp {
+    background:
+    radial-gradient(circle at 20% 20%, #0f172a, #020617),
+    linear-gradient(180deg,#020617,#020617);
+}
+
+/* HERO */
+
 .hero {
-    background: linear-gradient(135deg,#2563eb,#7c3aed,#9333ea);
-    padding: 48px;
-    border-radius: 22px;
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed,
+        #9333ea,
+        #2563eb
+    );
+    background-size: 300% 300%;
+    animation: gradientMove 8s ease infinite;
+
+    padding: 60px;
+    border-radius: 24px;
     margin-bottom: 28px;
+
+    box-shadow:
+        0 10px 40px rgba(0,0,0,0.5);
+}
+
+@keyframes gradientMove {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
 }
 
 .hero-title {
-    font-size: 46px;
-    font-weight: 900;
+    font-size: 48px;
+    font-weight: 800;
     color: white;
 }
 
 .hero-subtitle {
     font-size: 18px;
     color: #e2e8f0;
+    margin-top: 8px;
 }
+
+/* CARDS */
 
 .card {
     background: rgba(255,255,255,0.06);
-    padding: 20px;
-    border-radius: 16px;
+    backdrop-filter: blur(14px);
+    padding: 24px;
+    border-radius: 18px;
+
     text-align: center;
+
     color: white;
+
     font-weight: 600;
-    transition: 0.25s;
+
+    transition: 0.3s;
+
+    border: 1px solid rgba(255,255,255,0.08);
 }
 
 .card:hover {
-    transform: translateY(-6px);
+
+    transform: translateY(-8px) scale(1.02);
+
+    box-shadow:
+        0 15px 35px rgba(0,0,0,0.5);
 }
+
+/* SIDEBAR */
 
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg,#020617,#0f172a);
+
+    background:
+
+    linear-gradient(
+        180deg,
+        #020617,
+        #020617,
+        #0f172a
+    );
+
+    border-right:
+        1px solid rgba(255,255,255,0.08);
 }
 
+/* BUTTON */
+
+.stButton > button {
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
+    color: white;
+
+    border: none;
+
+    padding: 0.6rem 1.2rem;
+
+    border-radius: 10px;
+
+    font-weight: 600;
+
+    transition: 0.25s;
+}
+
+.stButton > button:hover {
+
+    transform: scale(1.05);
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,0.5);
+}
+
+/* DATAFRAME */
+
+[data-testid="stDataFrame"] {
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+}
+
+/* FOOTER */
+
 .footer {
-    margin-top: 55px;
-    padding: 18px;
+
+    margin-top: 60px;
+
+    padding: 20px;
+
     text-align: center;
+
     color: #9ca3af;
-    border-top: 1px solid rgba(255,255,255,0.08);
+
+    border-top:
+        1px solid rgba(255,255,255,0.08);
 }
 
 </style>
 """, unsafe_allow_html=True)
+
 
 # =====================================================
 # HERO
@@ -108,9 +214,11 @@ section[data-testid="stSidebar"] {
 st.markdown("""
 <div class="hero">
 <div class="hero-title">🚀 AutoML Studio</div>
+
 <div class="hero-subtitle">
 Enterprise-Grade Machine Learning Automation • Intelligent Model Optimization • Advanced Predictive Analytics Platform
 </div>
+
 </div>
 """, unsafe_allow_html=True)
 
@@ -122,6 +230,7 @@ c3.markdown('<div class="card">📊 Advanced Data Intelligence</div>', unsafe_al
 c4.markdown('<div class="card">🧠 Smart Pattern Discovery</div>', unsafe_allow_html=True)
 
 st.markdown("---")
+
 
 # =====================================================
 # FILE UPLOAD
@@ -138,22 +247,32 @@ if file is not None:
 
     df = pd.read_csv(file)
 
-    st.success("✅ Dataset Loaded Successfully")
+    st.success("Dataset Loaded Successfully")
 
-    st.subheader("📊 Dataset Preview")
+    st.subheader("Dataset Preview")
+
     st.dataframe(df.head())
 
     # =====================================================
     # PREPROCESSING
     # =====================================================
 
-    st.subheader("🧹 Preprocessing")
+    st.subheader("Preprocessing")
 
-    fill_cols = st.multiselect("Columns", df.columns)
+    fill_cols = st.multiselect(
+        "Columns",
+        df.columns
+    )
 
     fill_method = st.selectbox(
         "Method",
-        ["Mean","Median","Mode","Forward Fill","Backward Fill"]
+        [
+            "Mean",
+            "Median",
+            "Mode",
+            "Forward Fill",
+            "Backward Fill"
+        ]
     )
 
     if st.button("Apply Missing Fill"):
@@ -161,18 +280,23 @@ if file is not None:
         for col in fill_cols:
 
             if fill_method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
+
                 df[col] = df[col].fillna(df[col].mean())
 
             elif fill_method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
+
                 df[col] = df[col].fillna(df[col].median())
 
             elif fill_method == "Mode":
+
                 df[col] = df[col].fillna(df[col].mode()[0])
 
             elif fill_method == "Forward Fill":
+
                 df[col] = df[col].ffill()
 
             elif fill_method == "Backward Fill":
+
                 df[col] = df[col].bfill()
 
         st.success("Missing Values Handled")
@@ -191,7 +315,10 @@ if file is not None:
     if st.button("Apply Encoding"):
 
         for col in encode_cols:
-            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+
+            df[col] = LabelEncoder().fit_transform(
+                df[col].astype(str)
+            )
 
         st.success("Encoding Applied")
 
@@ -199,7 +326,9 @@ if file is not None:
     # SCALING
     # =====================================================
 
-    num_cols = df.select_dtypes(include=np.number).columns
+    num_cols = df.select_dtypes(
+        include=np.number
+    ).columns
 
     scale_cols = st.multiselect(
         "Columns for Scaling",
@@ -208,15 +337,25 @@ if file is not None:
 
     scale_method = st.selectbox(
         "Scaling Method",
-        ["Standardization","Normalization"]
+        [
+            "Standardization",
+            "Normalization"
+        ]
     )
 
     if st.button("Apply Scaling"):
 
-        scaler = StandardScaler() if scale_method == "Standardization" else MinMaxScaler()
+        scaler = (
+            StandardScaler()
+            if scale_method == "Standardization"
+            else MinMaxScaler()
+        )
 
         if len(scale_cols) > 0:
-            df[scale_cols] = scaler.fit_transform(df[scale_cols])
+
+            df[scale_cols] = scaler.fit_transform(
+                df[scale_cols]
+            )
 
         st.success("Scaling Applied")
 
@@ -225,8 +364,11 @@ if file is not None:
     # =====================================================
 
     learning_type = st.radio(
-        "🧠 Select Learning Type",
-        ["Supervised", "Unsupervised"]
+        "Select Learning Type",
+        [
+            "Supervised",
+            "Unsupervised"
+        ]
     )
 
     # =====================================================
@@ -240,19 +382,30 @@ if file is not None:
             df.columns
         )
 
-        df = df.dropna(subset=[target])
+        df = df.dropna(
+            subset=[target]
+        )
 
-        X = df.drop(columns=[target])
+        X = df.drop(
+            columns=[target]
+        )
+
         y = df[target]
 
         target_type = type_of_target(y)
 
-        if target_type in ["binary", "multiclass"]:
+        if target_type in [
+            "binary",
+            "multiclass"
+        ]:
+
             task = "Classification"
+
         else:
+
             task = "Regression"
 
-        st.subheader("🏆 Model Leaderboard")
+        st.subheader("Model Leaderboard")
 
         X_train, X_test, y_train, y_test = train_test_split(
             X,
@@ -266,44 +419,79 @@ if file is not None:
         if task == "Classification":
 
             models = {
-                "Logistic Regression": LogisticRegression(max_iter=1000),
-                "Random Forest": RandomForestClassifier(),
-                "Extra Trees": ExtraTreesClassifier(),
-                "Gradient Boosting": GradientBoostingClassifier(),
-                "Decision Tree": DecisionTreeClassifier(),
-                "KNN": KNeighborsClassifier(),
-                "SVM": SVC(),
-                "Naive Bayes": GaussianNB()
+
+                "Logistic Regression":
+                LogisticRegression(max_iter=1000),
+
+                "Random Forest":
+                RandomForestClassifier(),
+
+                "Extra Trees":
+                ExtraTreesClassifier(),
+
+                "Gradient Boosting":
+                GradientBoostingClassifier(),
+
+                "Decision Tree":
+                DecisionTreeClassifier(),
+
+                "KNN":
+                KNeighborsClassifier(),
+
+                "SVM":
+                SVC(),
+
+                "Naive Bayes":
+                GaussianNB()
             }
 
             best_score = 0
+
             best_model_name = None
 
             for name, model in models.items():
 
-                model.fit(X_train, y_train)
+                model.fit(
+                    X_train,
+                    y_train
+                )
 
-                preds = model.predict(X_test)
+                preds = model.predict(
+                    X_test
+                )
 
-                acc = accuracy_score(y_test, preds)
+                acc = accuracy_score(
+                    y_test,
+                    preds
+                )
 
-                results.append([name, acc])
+                results.append(
+                    [name, acc]
+                )
 
                 if acc > best_score:
+
                     best_score = acc
+
                     best_model_name = name
 
             leaderboard = pd.DataFrame(
                 results,
-                columns=["Model", "Accuracy"]
+                columns=[
+                    "Model",
+                    "Accuracy"
+                ]
             ).sort_values(
                 by="Accuracy",
                 ascending=False
             )
 
-            st.dataframe(leaderboard)
+            st.dataframe(
+                leaderboard
+            )
 
             if best_model_name is not None:
+
                 st.success(
                     f"Best Model Selected: {best_model_name}"
                 )
@@ -311,44 +499,83 @@ if file is not None:
         else:
 
             models = {
-                "Linear Regression": LinearRegression(),
-                "Ridge": Ridge(),
-                "Lasso": Lasso(),
-                "Random Forest": RandomForestRegressor(),
-                "Extra Trees": ExtraTreesRegressor(),
-                "Gradient Boosting": GradientBoostingRegressor(),
-                "Decision Tree": DecisionTreeRegressor(),
-                "KNN": KNeighborsRegressor(),
-                "SVR": SVR()
+
+                "Linear Regression":
+                LinearRegression(),
+
+                "Ridge":
+                Ridge(),
+
+                "Lasso":
+                Lasso(),
+
+                "Random Forest":
+                RandomForestRegressor(),
+
+                "Extra Trees":
+                ExtraTreesRegressor(),
+
+                "Gradient Boosting":
+                GradientBoostingRegressor(),
+
+                "Decision Tree":
+                DecisionTreeRegressor(),
+
+                "KNN":
+                KNeighborsRegressor(),
+
+                "SVR":
+                SVR()
             }
 
             best_score = float("inf")
+
             best_model_name = None
 
             for name, model in models.items():
 
-                model.fit(X_train, y_train)
+                model.fit(
+                    X_train,
+                    y_train
+                )
 
-                preds = model.predict(X_test)
+                preds = model.predict(
+                    X_test
+                )
 
-                rmse = np.sqrt(mean_squared_error(y_test, preds))
+                rmse = np.sqrt(
+                    mean_squared_error(
+                        y_test,
+                        preds
+                    )
+                )
 
-                results.append([name, rmse])
+                results.append(
+                    [name, rmse]
+                )
 
                 if rmse < best_score:
+
                     best_score = rmse
+
                     best_model_name = name
 
             leaderboard = pd.DataFrame(
                 results,
-                columns=["Model", "RMSE"]
+                columns=[
+                    "Model",
+                    "RMSE"
+                ]
             ).sort_values(
                 by="RMSE"
             )
 
-            st.dataframe(leaderboard)
+            st.dataframe(
+                leaderboard
+            )
 
             if best_model_name is not None:
+
                 st.success(
                     f"Best Model Selected: {best_model_name}"
                 )
@@ -359,37 +586,56 @@ if file is not None:
 
     else:
 
-        st.subheader("🧠 Unsupervised Model Leaderboard")
+        st.subheader("Unsupervised Model Leaderboard")
 
-        data = df.select_dtypes(include=np.number)
+        data = df.select_dtypes(
+            include=np.number
+        )
 
         if data.shape[1] == 0:
 
-            st.error("No numeric columns available for clustering")
+            st.error(
+                "No numeric columns available for clustering"
+            )
 
         else:
 
             scaler = StandardScaler()
 
-            data_scaled = scaler.fit_transform(data)
+            data_scaled = scaler.fit_transform(
+                data
+            )
 
             models = {
-                "KMeans": KMeans(n_clusters=3),
-                "Agglomerative": AgglomerativeClustering(n_clusters=3),
-                "Birch": Birch(n_clusters=3),
-                "DBSCAN": DBSCAN()
+
+                "KMeans":
+                KMeans(n_clusters=3),
+
+                "Agglomerative":
+                AgglomerativeClustering(n_clusters=3),
+
+                "Birch":
+                Birch(n_clusters=3),
+
+                "DBSCAN":
+                DBSCAN()
             }
 
             results = []
+
             best_score = -1
+
             best_model_name = None
+
             best_labels = None
 
             for name, model in models.items():
 
                 try:
 
-                    labels = model.fit_predict(data_scaled)
+                    labels = model.fit_predict(
+                        data_scaled
+                    )
 
                     if len(set(labels)) > 1:
 
@@ -402,17 +648,23 @@ if file is not None:
 
                         score = -1
 
-                    results.append([name, score])
+                    results.append(
+                        [name, score]
+                    )
 
                     if score > best_score:
 
                         best_score = score
+
                         best_labels = labels
+
                         best_model_name = name
 
                 except:
 
-                    results.append([name, -1])
+                    results.append(
+                        [name, -1]
+                    )
 
             leaderboard = pd.DataFrame(
                 results,
@@ -425,7 +677,9 @@ if file is not None:
                 ascending=False
             )
 
-            st.dataframe(leaderboard)
+            st.dataframe(
+                leaderboard
+            )
 
             if best_model_name is not None:
 
@@ -433,13 +687,20 @@ if file is not None:
                     f"Best Clustering Model: {best_model_name}"
                 )
 
-                pca = PCA(n_components=2)
+                pca = PCA(
+                    n_components=2
+                )
 
-                reduced = pca.fit_transform(data_scaled)
+                reduced = pca.fit_transform(
+                    data_scaled
+                )
 
                 plot_df = pd.DataFrame(
                     reduced,
-                    columns=["PC1","PC2"]
+                    columns=[
+                        "PC1",
+                        "PC2"
+                    ]
                 )
 
                 plot_df["Cluster"] = best_labels
@@ -452,11 +713,15 @@ if file is not None:
                     title="Cluster Visualization"
                 )
 
-                st.plotly_chart(fig)
+                st.plotly_chart(
+                    fig
+                )
 
 else:
 
-    st.info("Upload dataset to start AutoML")
+    st.info(
+        "Upload dataset to start AutoML"
+    )
 
 st.markdown(
     '<div class="footer">Developed by Krishna Gediya | AutoML Application</div>',
