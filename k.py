@@ -636,7 +636,7 @@ else:
     # UNSUPERVISED
     # =========================
 
-        else:
+     else:
     
             st.subheader("🧠 Unsupervised Model Leaderboard")
     
