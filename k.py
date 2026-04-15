@@ -445,131 +445,88 @@ if file:
         ]
     )
 
-    # =========================
-    # SUPERVISED
-    # =========================
+  if learning_type == "Supervised":
 
-    if learning_type == "Supervised":
+        st.subheader("⚙️ Model Setup")
 
-        target = st.selectbox(
-            "Select Target Column",
-            df.columns
-        )
+        target = st.selectbox("Target Column", df.columns)
 
-        df = df.dropna(
-            subset=[target]
-        )
+        df = df.dropna(subset=[target])
 
-        X = df.drop(
-            columns=[target]
-        )
-
+        X = df.drop(columns=[target])
         y = df[target]
 
         target_type = type_of_target(y)
 
-        if target_type in [
-            "binary",
-            "multiclass"
-        ]:
-
+        if target_type in ["binary", "multiclass"]:
             task = "Classification"
-
         else:
-
             task = "Regression"
 
-        st.subheader("Model Leaderboard")
+        st.write(f"🎯 Task: {task}")
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42
+        k = st.slider("Top K Features",1,X.shape[1],min(5,X.shape[1]))
+
+        selector = SelectKBest(
+            f_classif if task=="Classification" else f_regression,
+            k=k
         )
 
-        results = []
+        X_new = selector.fit_transform(X,y)
 
-        if task == "Classification":
+        selected_features = X.columns[selector.get_support()]
 
-            models = {
+        X = pd.DataFrame(X_new,columns=selected_features)
 
-                "Logistic Regression":
-                LogisticRegression(max_iter=1000),
+        X_train,X_test,y_train,y_test = train_test_split(
+            X,y,test_size=0.2,random_state=42
+        )
 
-                "Random Forest":
-                RandomForestClassifier(),
+        st.subheader("🏆 Model Leaderboard")
 
-                "Extra Trees":
-                ExtraTreesClassifier(),
+        results=[]
+        best_model=None
+        best_model_name=None
 
-                "Gradient Boosting":
-                GradientBoostingClassifier(),
+        if task=="Classification":
 
-                "Decision Tree":
-                DecisionTreeClassifier(),
+            best_score=0
 
-                "KNN":
-                KNeighborsClassifier(),
-
-                "SVM":
-                SVC(),
-
-                "Naive Bayes":
-                GaussianNB()
+            models={
+                "Logistic Regression":LogisticRegression(max_iter=1000),
+                "Random Forest":RandomForestClassifier(),
+                "Extra Trees":ExtraTreesClassifier(),
+                "Gradient Boosting":GradientBoostingClassifier(),
+                "Decision Tree":DecisionTreeClassifier(),
+                "KNN":KNeighborsClassifier(),
+                "SVM":SVC(probability=True),
+                "Naive Bayes":GaussianNB()
             }
 
-            best_score = 0
+            for name,model in models.items():
 
-            best_model_name = None
+                model.fit(X_train,y_train)
 
-            for name, model in models.items():
+                preds=model.predict(X_test)
 
-                model.fit(
-                    X_train,
-                    y_train
-                )
+                acc=accuracy_score(y_test,preds)
 
-                preds = model.predict(
-                    X_test
-                )
+                results.append([name,acc])
 
-                acc = accuracy_score(
-                    y_test,
-                    preds
-                )
+                if acc>best_score:
 
-                results.append(
-                    [name, acc]
-                )
+                    best_score=acc
+                    best_model=model
+                    best_model_name=name
 
-                if acc > best_score:
+            res=pd.DataFrame(results,columns=["Model","Accuracy"])
 
-                    best_score = acc
+            st.dataframe(res)
 
-                    best_model_name = name
+            st.success(f"Best Model Selected: {best_model_name}")
 
-            leaderboard = pd.DataFrame(
-                results,
-                columns=[
-                    "Model",
-                    "Accuracy"
-                ]
-            ).sort_values(
-                by="Accuracy",
-                ascending=False
-            )
-
-            st.dataframe(
-                leaderboard
-            )
-
-            if best_model_name is not None:
-
-                st.success(
-                    f"Best Model Selected: {best_model_name}"
-                )
-             if hasattr(best_model, "feature_importances_"):
+            # ---------------- FEATURE IMPORTANCE (SUPERVISED) ----------------
+            if hasattr(best_model, "feature_importances_"):
 
                 st.subheader("⭐ Feature Importance")
 
@@ -589,90 +546,45 @@ if file:
 
                 st.plotly_chart(fig_imp)
 
-
         else:
 
-            models = {
+            best_score=float("inf")
 
-                "Linear Regression":
-                LinearRegression(),
-
-                "Ridge":
-                Ridge(),
-
-                "Lasso":
-                Lasso(),
-
-                "Random Forest":
-                RandomForestRegressor(),
-
-                "Extra Trees":
-                ExtraTreesRegressor(),
-
-                "Gradient Boosting":
-                GradientBoostingRegressor(),
-
-                "Decision Tree":
-                DecisionTreeRegressor(),
-
-                "KNN":
-                KNeighborsRegressor(),
-
-                "SVR":
-                SVR()
+            models={
+                "Linear Regression":LinearRegression(),
+                "Ridge":Ridge(),
+                "Lasso":Lasso(),
+                "Random Forest":RandomForestRegressor(),
+                "Extra Trees":ExtraTreesRegressor(),
+                "Gradient Boosting":GradientBoostingRegressor(),
+                "Decision Tree":DecisionTreeRegressor(),
+                "KNN":KNeighborsRegressor(),
+                "SVR":SVR()
             }
 
-            best_score = float("inf")
+            for name,model in models.items():
 
-            best_model_name = None
+                model.fit(X_train,y_train)
 
-            for name, model in models.items():
+                preds=model.predict(X_test)
 
-                model.fit(
-                    X_train,
-                    y_train
-                )
+                rmse=np.sqrt(mean_squared_error(y_test,preds))
 
-                preds = model.predict(
-                    X_test
-                )
+                results.append([name,rmse])
 
-                rmse = np.sqrt(
-                    mean_squared_error(
-                        y_test,
-                        preds
-                    )
-                )
+                if rmse<best_score:
 
-                results.append(
-                    [name, rmse]
-                )
+                    best_score=rmse
+                    best_model=model
+                    best_model_name=name
 
-                if rmse < best_score:
+            res=pd.DataFrame(results,columns=["Model","RMSE"])
 
-                    best_score = rmse
+            st.dataframe(res)
 
-                    best_model_name = name
+            st.success(f"Best Model Selected: {best_model_name}")
 
-            leaderboard = pd.DataFrame(
-                results,
-                columns=[
-                    "Model",
-                    "RMSE"
-                ]
-            ).sort_values(
-                by="RMSE"
-            )
-
-            st.dataframe(
-                leaderboard
-            )
-
-            if best_model_name is not None:
-
-                st.success(
-                    f"Best Model Selected: {best_model_name}"
-                )
+            # ---------------- FEATURE IMPORTANCE (SUPERVISED REGRESSION) ----------------
             if hasattr(best_model, "feature_importances_"):
 
                 st.subheader("⭐ Feature Importance")
@@ -718,135 +630,86 @@ if file:
 
     else:
 
-        st.subheader("Unsupervised Model Leaderboard")
+        st.subheader("🧠 Unsupervised Model Leaderboard")
 
-        data = df.select_dtypes(
-            include=np.number
+        data = df.select_dtypes(include=np.number)
+
+        scaler = StandardScaler()
+
+        data_scaled = scaler.fit_transform(data)
+
+        models = {
+            "KMeans": KMeans(n_clusters=3),
+            "Agglomerative": AgglomerativeClustering(n_clusters=3),
+            "Birch": Birch(n_clusters=3),
+            "DBSCAN": DBSCAN()
+        }
+
+        results=[]
+        best_score=-1
+
+        for name,model in models.items():
+
+            labels = model.fit_predict(data_scaled)
+
+            if len(set(labels)) > 1:
+
+                score = silhouette_score(
+                    data_scaled,
+                    labels
+                )
+
+            else:
+
+                score = -1
+
+            results.append([name,score])
+
+            if score > best_score:
+
+                best_score = score
+                best_model_name = name
+                best_labels = labels
+
+        res = pd.DataFrame(
+            results,
+            columns=[
+                "Algorithm",
+                "Silhouette Score"
+            ]
         )
 
-        if data.shape[1] == 0:
+        st.dataframe(res)
 
-            st.error(
-                "No numeric columns available for clustering"
-            )
+        st.success(
+            f"Best Clustering Model: {best_model_name}"
+        )
 
-        else:
+        df["Cluster"] = best_labels
 
-            scaler = StandardScaler()
+        pca = PCA(n_components=2)
 
-            data_scaled = scaler.fit_transform(
-                data
-            )
+        reduced = pca.fit_transform(data_scaled)
 
-            models = {
+        plot_df = pd.DataFrame(
+            reduced,
+            columns=["PC1","PC2"]
+        )
 
-                "KMeans":
-                KMeans(n_clusters=3),
+        plot_df["Cluster"] = best_labels
 
-                "Agglomerative":
-                AgglomerativeClustering(n_clusters=3),
+        fig = px.scatter(
+            plot_df,
+            x="PC1",
+            y="PC2",
+            color="Cluster",
+            title="Cluster Visualization"
+        )
 
-                "Birch":
-                Birch(n_clusters=3),
+        st.plotly_chart(fig)
 
-                "DBSCAN":
-                DBSCAN()
-            }
-
-            results = []
-
-            best_score = -1
-
-            best_model_name = None
-
-            best_labels = None
-
-            for name, model in models.items():
-
-                try:
-
-                    labels = model.fit_predict(
-                        data_scaled
-                    )
-
-                    if len(set(labels)) > 1:
-
-                        score = silhouette_score(
-                            data_scaled,
-                            labels
-                        )
-
-                    else:
-
-                        score = -1
-
-                    results.append(
-                        [name, score]
-                    )
-
-                    if score > best_score:
-
-                        best_score = score
-
-                        best_labels = labels
-
-                        best_model_name = name
-
-                except:
-
-                    results.append(
-                        [name, -1]
-                    )
-
-            leaderboard = pd.DataFrame(
-                results,
-                columns=[
-                    "Algorithm",
-                    "Silhouette Score"
-                ]
-            ).sort_values(
-                by="Silhouette Score",
-                ascending=False
-            )
-
-            st.dataframe(
-                leaderboard
-            )
-
-            if best_model_name is not None:
-
-                st.success(
-                    f"Best Clustering Model: {best_model_name}"
-                )
-
-                pca = PCA(
-                    n_components=2
-                )
-
-                reduced = pca.fit_transform(
-                    data_scaled
-                )
-
-                plot_df = pd.DataFrame(
-                    reduced,
-                    columns=[
-                        "PC1",
-                        "PC2"
-                    ]
-                )
-
-                plot_df["Cluster"] = best_labels
-
-                fig = px.scatter(
-                    plot_df,
-                    x="PC1",
-                    y="PC2",
-                    color="Cluster",
-                    title="Cluster Visualization"
-                )
-
-                st.plotly_chart(fig)
-                st.subheader("⭐ Feature Importance (Unsupervised)")
+        # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
+        st.subheader("⭐ Feature Importance (Unsupervised)")
 
         pca_imp = PCA(n_components=2)
         pca_imp.fit(data_scaled)
@@ -930,8 +793,6 @@ if file:
                 st.warning(
                     "Prediction not supported for this clustering algorithm"
                 )
-
-
 else:
 
     st.info(
