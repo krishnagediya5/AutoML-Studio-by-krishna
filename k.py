@@ -445,7 +445,7 @@ if file:
         ]
     )
 
-      if learning_type == "Supervised":
+     if learning_type == "Supervised":
 
         st.subheader("⚙️ Model Setup")
 
