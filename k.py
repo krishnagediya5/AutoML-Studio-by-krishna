@@ -229,15 +229,8 @@ section[data-testid="stSidebar"] {
 # SIDEBAR
 # =====================================================
 
-st.sidebar.markdown(
-    '<div class="sidebar-title">🚀 AutoML Studio</div>',
-    unsafe_allow_html=True
-)
 
-st.sidebar.markdown(
-    '<div class="sidebar-card">',
-    unsafe_allow_html=True
-)
+
 
 st.sidebar.markdown("### 📂 Upload Dataset")
 
