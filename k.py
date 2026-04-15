@@ -474,7 +474,7 @@ if learning_type == "Supervised":
     
             task = "Classification"
 
-     else:
+  else:
 
         task = "Regression"
 
