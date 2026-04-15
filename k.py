@@ -451,7 +451,7 @@ if file:
     
     # CORRECT INDENTATION
     
-    if learning_type == "Supervised":
+if learning_type == "Supervised":
     
         target = st.selectbox(
             "Select Target Column",
