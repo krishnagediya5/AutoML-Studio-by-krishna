@@ -242,16 +242,41 @@ file = st.sidebar.file_uploader(
     "Upload CSV",
     type=["csv"]
 )
+if file:
+    if "df" not in st.session_state:
+        st.session_state.df = pd.read_csv(file)
 
-if file is not None:
+    df = st.session_state.df
 
-    df = pd.read_csv(file)
+    st.success("✅ Dataset Loaded Successfully")
 
-    st.success("Dataset Loaded Successfully")
-
-    st.subheader("Dataset Preview")
-
+    st.subheader("📊 Dataset Preview")
     st.dataframe(df.head())
+
+    col1, col2 = st.columns(2)
+
+    col1.write(f"📐 Shape: {df.shape}")
+
+    col2.write("❗ Missing Values")
+
+    col2.dataframe(
+        df.isnull().sum().to_frame("Count")
+    )
+
+    numeric_cols = df.select_dtypes(
+        include=np.number
+    ).columns
+
+    if len(numeric_cols) > 0:
+
+        col = st.selectbox(
+            "📈 Distribution Column",
+            numeric_cols
+        )
+
+        st.plotly_chart(
+            px.histogram(df, x=col)
+        )
 
     # =====================================================
     # PREPROCESSING
