@@ -433,13 +433,6 @@ if file:
 
         st.success("Scaling Applied")
 
-    # =========================
-    # LEARNING TYPE
-    # =========================
-
-    # =========================
-# LEARNING TYPE
-# =========================
 
     learning_type = st.radio(
         "Select Learning Type",
@@ -474,7 +467,7 @@ if learning_type == "Supervised":
     
             task = "Classification"
 
-  else:
+   else:
 
         task = "Regression"
 
