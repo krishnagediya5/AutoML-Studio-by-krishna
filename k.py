@@ -413,6 +413,63 @@ if file:
 
             st.success(f"Best Model Selected: {best_model_name}")
 
+            # ---------------- FEATURE IMPORTANCE (CLASSIFICATION) ----------------
+            if hasattr(best_model, "feature_importances_"):
+
+                st.subheader("⭐ Feature Importance")
+
+                importance = best_model.feature_importances_
+
+                fi_df = pd.DataFrame({
+                    "Feature": selected_features,
+                    "Importance": importance
+                })
+
+                fig_imp = px.bar(
+                    fi_df,
+                    x="Feature",
+                    y="Importance",
+                    title="Feature Importance"
+                )
+
+                st.plotly_chart(fig_imp)
+
+            # ---------------- USER INPUT PREDICTION ----------------
+            st.subheader("🧑‍💻 User Input Prediction")
+
+            user_data = {}
+
+            for col in selected_features:
+                val = st.number_input(
+                    f"Enter value for {col}",
+                    value=0.0,
+                    key=f"clf_{col}"
+                )
+                user_data[col] = val
+
+            if st.button("Predict"):
+
+                input_df = pd.DataFrame([user_data])
+
+                prediction = best_model.predict(input_df)
+
+                st.success(f"Prediction: {prediction[0]}")
+
+                # ---------------- PREDICTION GRAPH ----------------
+                pred_df = pd.DataFrame({
+                    "Feature": list(user_data.keys()),
+                    "Value": list(user_data.values())
+                })
+
+                fig_pred = px.bar(
+                    pred_df,
+                    x="Feature",
+                    y="Value",
+                    title="User Input Feature Values"
+                )
+
+                st.plotly_chart(fig_pred)
+
         else:
 
             best_score = float("inf")
@@ -449,44 +506,6 @@ if file:
             st.dataframe(res)
 
             st.success(f"Best Model Selected: {best_model_name}")
-            if hasattr(best_model, "feature_importances_"):
-
-                st.subheader("⭐ Feature Importance")
-
-                importance = best_model.feature_importances_
-
-                fi_df = pd.DataFrame({
-                    "Feature": selected_features,
-                    "Importance": importance
-                })
-
-                fig_imp = px.bar(
-                    fi_df,
-                    x="Feature",
-                    y="Importance",
-                    title="Feature Importance"
-                )
-
-                st.plotly_chart(fig_imp)
-            st.subheader("🧑‍💻 User Input Prediction")
-
-            user_data = {}
-
-            for col in selected_features:
-                val = st.number_input(
-                    f"Enter value for {col}",
-                    value=0.0
-                )
-                user_data[col] = val
-
-            if st.button("Predict"):
-
-                input_df = pd.DataFrame([user_data])
-
-                prediction = best_model.predict(input_df)
-
-                st.success(f"Prediction: {prediction[0]}")
-
 
     else:
 
@@ -534,114 +553,6 @@ if file:
         st.success(
             f"Best Clustering Model: {best_model_name}"
         )
-        df["Cluster"] = best_labels
-
-        pca = PCA(n_components=2)
-
-        reduced = pca.fit_transform(data_scaled)
-
-        plot_df = pd.DataFrame(
-            reduced,
-            columns=["PC1","PC2"]
-        )
-
-        plot_df["Cluster"] = best_labels
-
-        fig = px.scatter(
-            plot_df,
-            x="PC1",
-            y="PC2",
-            color="Cluster",
-            title="Cluster Visualization"
-        )
-
-        st.plotly_chart(fig)
-
-        # ---------------- FEATURE IMPORTANCE (UNSUPERVISED) ----------------
-        st.subheader("⭐ Feature Importance (Unsupervised)")
-
-        pca_imp = PCA(n_components=2)
-        pca_imp.fit(data_scaled)
-
-        importance_values = np.mean(
-            np.abs(pca_imp.components_),
-            axis=0
-        )
-
-        fi_unsup_df = pd.DataFrame({
-            "Feature": data.columns,
-            "Importance": importance_values
-        })
-
-        fig_unsup_imp = px.bar(
-            fi_unsup_df,
-            x="Feature",
-            y="Importance",
-            title="Unsupervised Feature Importance"
-        )
-
-        st.plotly_chart(fig_unsup_imp)
-        st.subheader("🧑‍💻 User Input Cluster Prediction")
-    
-        user_data = {}
-        
-        for col in data.columns:
-        
-            val = st.number_input(
-                f"Enter value for {col}",
-                value=0.0,
-                key=f"unsup_{col}"
-            )
-        
-            user_data[col] = val
-        
-        if st.button("Predict Cluster"):
-        
-            input_df = pd.DataFrame(
-                [user_data]
-            )
-        
-            input_scaled = scaler.transform(
-                input_df
-            )
-        
-            if best_model_name == "KMeans":
-        
-                model = KMeans(
-                    n_clusters=3
-                )
-        
-                model.fit(data_scaled)
-        
-                cluster = model.predict(
-                    input_scaled
-                )
-        
-                st.success(
-                    f"Predicted Cluster: {cluster[0]}"
-                )
-        
-            elif best_model_name == "Birch":
-        
-                model = Birch(
-                    n_clusters=3
-                )
-        
-                model.fit(data_scaled)
-        
-                cluster = model.predict(
-                    input_scaled
-                )
-        
-                st.success(
-                    f"Predicted Cluster: {cluster[0]}"
-                )
-        
-            else:
-        
-                st.warning(
-                    "Prediction not supported for this clustering algorithm"
-                )
 
 else:
 
