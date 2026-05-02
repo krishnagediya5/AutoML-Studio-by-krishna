@@ -263,14 +263,14 @@ if file:
 
         for col in fill_cols:
 
-            if fill_method == "Mean" and pd.api.types.is_numeric_dtype(df[col]):
-                df[col] = df[col].fillna(df[col].mean())
+            if fill_method == "Mode":
+                df[col] = df[col].fillna(df[col].mode()[0])
 
             elif fill_method == "Median" and pd.api.types.is_numeric_dtype(df[col]):
                 df[col] = df[col].fillna(df[col].median())
 
-            elif fill_method == "Mode":
-                df[col] = df[col].fillna(df[col].mode()[0])
+            elif fill_method == "Mean":
+                df[col] = df[col].fillna(df[col].mean()[0])
 
             elif fill_method == "Forward Fill":
                 df[col] = df[col].ffill()
