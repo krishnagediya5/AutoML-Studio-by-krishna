@@ -251,9 +251,9 @@ if file:
     fill_method = st.selectbox(
         "Method",
         [
-            "Mean",
-            "Median",
             "Mode",
+            "Median",
+            "Mean",
             "Forward Fill",
             "Backward Fill"
         ]
